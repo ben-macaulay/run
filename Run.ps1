@@ -4,7 +4,7 @@ Param (
     )
 
 
-
+#region Dev/Test setup
 if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $Current_Folder = (Get-Item $Current_File).Directory.FullName
@@ -19,8 +19,10 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_Folder = split-path $MyInvocation.MyCommand.Path
     $Current_File = ([io.fileinfo]$MyInvocation.MyCommand.Definition).Name
 }
+#endregion
 
 
+#region Int calculation logic
 $msg = "$Current_File`n`nReceived integer: `'$Int`'`nReceived command: '$Cmd`'`nReceived parameters:`n"
 if ( $Int -ge 1024 ) { $debug = $true;    $Int = $Int - 1024; $msg = $msg+" - 1024: DEBUG on `n"}
 if ( $Int -ge 64 )   { $browser = $true;  $Int = $Int - 64;   $msg = $msg+" -   64: Browser on`n"}
@@ -31,12 +33,12 @@ if ( $Int -ge 4 )    { $min = $true;      $Int = $Int - 4;    $msg = $msg+" -   
 if ( $Int -ge 2 )    { $hide = $true;     $Int = $Int - 2;    $msg = $msg+" -    2: Hidden on `n"}
 if ( $Int -ge 1 )    { $iconoff = $true;  $Int = $Int - 1;    $msg = $msg+" -    1: Systray icon off (on by default) `n"}
 if (test-path Variable:\debug) {$msg = $msg+"Int remainder: $Int"}
+#endregion
 
 
+#region Features
 #   Test for if we need to instantiate the default browser with $cmd as the URL provided...
 if ( $browser ) {  # then $cmd is just a URL?
-
-
     $httphandler = (Get-ItemProperty registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice -Name ProgId).ProgId
     $httphandler = (Get-ItemProperty registry::HKEY_CLASSES_ROOT\$httphandler\shell\open\command -Name '(default)').'(default)'
     
@@ -51,21 +53,26 @@ if ( $browser ) {  # then $cmd is just a URL?
     $msg = $msg+"`n`nConverted for browser to:`n`'$exe`'`n`'$exeargs`'"
 
 
-} else {      # break down the command supplied -  Find out if binary exists
+} else {
+    # break down the command supplied -  Find out binary and if any args exist
     $exeends = $cmd.IndexOf(".exe")+5                                   # find the end of the first .exe
     if ($cmd.Length -gt $exeends) {
         $exeargs = $cmd.Substring($exeends)                             # everything else goes into the args
         $exeargs = $exeargs.Trim()                                      # strip spaces
         $exe = $cmd.Substring(0,$exeends)                               # Grab just the .EXE path
     } else {
-        #$exeargs = $false
+        $exeargs = $false
         $exe = $cmd
     }
     $exe = $exe.replace('"','')                                         # strip quotes
     $exe = $exe.trim()                                                  # blanks
     $msg = $msg+"`n`nConverted to: `'$exe`'`n`Arguments: `'$exeargs`'"
-    #if ( test-path $exe ) {"found $exe" }
-    #else { write-host $msg; throw "Couldn't find $exe - aborting..." } # No .EXE - no bueno... Meh! Who cares?!
+
+
+<# I decided not to bother with this, PoSh is already strict enough on launching things...  Not sure which is the lesser mistake TBH!
+    if ( test-path $exe ) {"found $exe" }
+    else { write-host $msg; throw "Couldn't find $exe - aborting..." } # No .EXE - no bueno...
+#>
 }
 
 
@@ -93,34 +100,24 @@ if ( $min -and -not($max -or $hide)) {$ws = "Minimized"}
 if ( $hide -and -not($min -or $max)) {$ws = "Hidden"}
 if (test-path Variable:\ws){$msg = $msg+"`n-WindowStyle: '$ws`'"}
 if ($debug) {write-host $msg}
+#endregion
 
 
+#region Splatting for Start-Process
 # initialize a hashtable we'll use to splat with later that has all of the params that will always be used (it can also be empty)
+# Great advice from Ryan Bolger at https://serverfault.com/questions/1069894/how-do-i-optionally-specify-parameters-in-powershell/1069912#1069912
 $startParams = @{ FilePath = $exe }
 if ($ws) { $startParams.WindowStyle = $ws }                #  conditionally add WindowStyle
 if ($wait) { $startParams.wait = $true }                   # conditionally add Wait
 if ($exeargs) { $startParams.ArgumentList = $exeargs }     # conditionally add arguments
+#endregion
 
 
-
-# spawn process...  Fsckin finally!
-<#
 #The systray icon and wait can't really co-exist, so:
-if (($true -eq $wait) -and ($true -eq $iconoff)){       # wr're waiting for the child process to close
-    if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws -wait}
-    elseif ($exeargs) {start-process $exe -ArgumentList $exeargs -wait}
-    elseif ($ws) {start-process $exe -WindowStyle $ws -wait}
-    else {start-process $exe -wait}
-
-} else#>if ($iconoff -or $wait) {                                    # No systray icon, just launch it!
-    Start-Process @startParams                            # run the function with the splatted hashtable.  Replaces:
-<#    if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws}
-    elseif ($exeargs) {start-process $exe -ArgumentList $exeargs}
-    elseif ($ws) {start-process $exe -WindowStyle $ws}
-    else {start-process $exe }
-#>
-
-} else {                                                 # make a fancy systray icon...  Big tedious mess of GUI crap:
+if ($iconoff -or $wait) {                                    # No systray icon, just launch it!
+    Start-Process @startParams                               # spawn process...  Fsckin finally!
+} else {                                                     # make a fancy systray icon...  Big tedious mess of GUI crap:
+#region  Fugly, tedious, GUI crap
 <# 
     Systray stuff shamelessly stolen from https://www.systanddeploy.com/2018/12/create-your-own-powershell.html
     WinForms stuff shamelessly stolen from:
@@ -134,7 +131,7 @@ if (($true -eq $wait) -and ($true -eq $iconoff)){       # wr're waiting for the 
     # Add assemblies for WPF & forms
     [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')    | out-null
     [System.Reflection.Assembly]::LoadWithPartialName('presentationframework')   | out-null
-    [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing')    | out-null
+    [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing')          | out-null
     [System.Reflection.Assembly]::LoadWithPartialName('WindowsFormsIntegration') | out-null
     
 
@@ -225,10 +222,11 @@ if (($true -eq $wait) -and ($true -eq $iconoff)){       # wr're waiting for the 
         Stop-Process $pid
     })
     $timer1.Start()                                             # start the timer
+#endregion
 
 
     # spawn process...  Fsckin finally!
-    Start-Process @startParams                             # run the function with the splatted hashtable.  Replaces:
+    Start-Process @startParams                                  # run the function with the splatted hashtable.  Replaces:
 <#
     if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws}
     elseif ($exeargs) {start-process $exe -ArgumentList $exeargs}
