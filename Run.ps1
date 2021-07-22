@@ -8,8 +8,10 @@ Param (
 if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $Current_Folder = (Get-Item $Current_File).Directory.FullName
-    $int = 16
+    $int = 4
     $cmd = """C:\Program Files (x86)\Internet Explorer\iexplore.exe"" http://google.com"
+    $cmd = "notepad.exe"; if ( test-path Variable:exeargs ) { remove-item Variable:exeargs }
+    $debug = $true
 } elseif (Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
     $Current_Folder = (Get-Item $Current_File).Directory.FullName
@@ -19,7 +21,7 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
 }
 
 
-$msg = "$Current_File`n`nReceived command: `n  `'$Cmd`'`n`nParameters:`n"
+$msg = "$Current_File`n`nReceived integer: `'$Int`'`nReceived command: '$Cmd`'`nReceived parameters:`n"
 if ( $Int -ge 1024 ) { $debug = $true;    $Int = $Int - 1024; $msg = $msg+" - 1024: DEBUG on `n"}
 if ( $Int -ge 64 )   { $browser = $true;  $Int = $Int - 64;   $msg = $msg+" -   64: Browser on`n"}
 if ( $Int -ge 32 )   { $wait = $true;     $Int = $Int - 32;   $msg = $msg+" -   32: Wait on `n"}
@@ -27,11 +29,14 @@ if ( $Int -ge 16 )   { $8dot3 = $true;    $Int = $Int - 16;   $msg = $msg+" -   
 if ( $Int -ge 8 )    { $max = $true;      $Int = $Int - 8;    $msg = $msg+" -    8: Maximised on `n"}
 if ( $Int -ge 4 )    { $min = $true;      $Int = $Int - 4;    $msg = $msg+" -    4: Minimised on `n"}
 if ( $Int -ge 2 )    { $hide = $true;     $Int = $Int - 2;    $msg = $msg+" -    2: Hidden on `n"}
-if ( $Int -ge 1 )    { $iconoff = $true; $Int = $Int - 1;    $msg = $msg+" -    1: Systray icon off (on by default) `n"}
+if ( $Int -ge 1 )    { $iconoff = $true;  $Int = $Int - 1;    $msg = $msg+" -    1: Systray icon off (on by default) `n"}
 if (test-path Variable:\debug) {$msg = $msg+"Int remainder: $Int"}
 
-1128-64
+
+#   Test for if we need to instantiate the default browser with $cmd as the URL provided...
 if ( $browser ) {  # then $cmd is just a URL?
+
+
     $httphandler = (Get-ItemProperty registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice -Name ProgId).ProgId
     $httphandler = (Get-ItemProperty registry::HKEY_CLASSES_ROOT\$httphandler\shell\open\command -Name '(default)').'(default)'
     
@@ -44,7 +49,9 @@ if ( $browser ) {  # then $cmd is just a URL?
     $exe = $exe.replace('"','')                                         # strip quotes
     $cmd = $exe+" "+$exeargs                                            # put it all back together...
     $msg = $msg+"`n`nConverted for browser to:`n`'$exe`'`n`'$exeargs`'"
-} else {                                                                # Find out if binary exists
+
+
+} else {      # break down the command supplied -  Find out if binary exists
     $exeends = $cmd.IndexOf(".exe")+5                                   # find the end of the first .exe
     if ($cmd.Length -gt $exeends) {
         $exeargs = $cmd.Substring($exeends)                             # everything else goes into the args
@@ -85,26 +92,33 @@ if ( $max -and -not($min -or $hide)) {$ws = "Maximized"}
 if ( $min -and -not($max -or $hide)) {$ws = "Minimized"}
 if ( $hide -and -not($min -or $max)) {$ws = "Hidden"}
 if (test-path Variable:\ws){$msg = $msg+"`n-WindowStyle: '$ws`'"}
-
-
 if ($debug) {write-host $msg}
 
 
+# initialize a hashtable we'll use to splat with later that has all of the params that will always be used (it can also be empty)
+$startParams = @{ FilePath = $exe }
+if ($ws) { $startParams.WindowStyle = $ws }                #  conditionally add WindowStyle
+if ($wait) { $startParams.wait = $true }                   # conditionally add Wait
+if ($exeargs) { $startParams.ArgumentList = $exeargs }     # conditionally add arguments
+
+
+
 # spawn process...  Fsckin finally!
+<#
 #The systray icon and wait can't really co-exist, so:
 if (($true -eq $wait) -and ($true -eq $iconoff)){       # wr're waiting for the child process to close
-
     if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws -wait}
     elseif ($exeargs) {start-process $exe -ArgumentList $exeargs -wait}
     elseif ($ws) {start-process $exe -WindowStyle $ws -wait}
     else {start-process $exe -wait}
 
-} elseif ($iconoff) {                                    # No systray icon, just launch it!
-
-    if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws}
+} else#>if ($iconoff -or $wait) {                                    # No systray icon, just launch it!
+    Start-Process @startParams                            # run the function with the splatted hashtable.  Replaces:
+<#    if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws}
     elseif ($exeargs) {start-process $exe -ArgumentList $exeargs}
     elseif ($ws) {start-process $exe -WindowStyle $ws}
     else {start-process $exe }
+#>
 
 } else {                                                 # make a fancy systray icon...  Big tedious mess of GUI crap:
 <# 
@@ -214,11 +228,13 @@ if (($true -eq $wait) -and ($true -eq $iconoff)){       # wr're waiting for the 
 
 
     # spawn process...  Fsckin finally!
+    Start-Process @startParams                             # run the function with the splatted hashtable.  Replaces:
+<#
     if (($ws) -and ($exeargs)) {start-process $exe -ArgumentList $exeargs -WindowStyle $ws}
     elseif ($exeargs) {start-process $exe -ArgumentList $exeargs}
     elseif ($ws) {start-process $exe -WindowStyle $ws}
     else {start-process $exe }
-
+#>
 
     # Create an application context for it to all run within - Thanks Chrissy
     # This helps with responsiveness, especially when clicking Exit - Thanks Chrissy
