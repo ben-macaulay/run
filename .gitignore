@@ -1,3 +1,4 @@
 _archive
 dev
 .vscode
+*.cmd
