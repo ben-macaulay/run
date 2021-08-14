@@ -22,7 +22,8 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
 }
 #endregion
 
-
+# Strip out flawed handling when compiled
+$cmd = $cmd.ToLower().Replace('-cmd:','')
 #region Int calculation logic
 $msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`n"
 if ( $Int -gt 0 )    { $msg = $msg+"`r`nReceived feature parameters:`r`n"}
