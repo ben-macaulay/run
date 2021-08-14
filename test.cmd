@@ -19,5 +19,7 @@ powershell.exe -exec bypass -f "%~dp0run.ps1" -int:1030 -cmd:"notepad.EXE ""F:\P
 :: Works = run.exe 16 """C:\Program Files\Internet Explorer\iexplore.exe"" about:blank"
 :: Works = run.exe 1072 """C:\Program Files\Internet Explorer\iexplore.exe"" about:blank"
 :: Works = run.exe 32 "Control.exe mmsys.cpl"
-run.exe 1121 chrome://settings
-pause
+:: Works = powershell.exe -exec bypass -f "%~dp0run.ps1" -cmd:"notepad.EXE F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx" -int:4
+:: Works = run.exe -Cmd:"notepad2.exe ""%~dp0readme.md""" -Int:36
+:: Works = run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
+run.exe "notepad2.exe ""%~dp0readme.md"""
