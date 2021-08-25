@@ -3,15 +3,20 @@
 **Usage:**
 ```
     Run.exe [Int] [Command]
-    Run.ps1 -int:[Int] -Command:[Command]
+    Run.ps1 -int:[Int] -cmd:[Command]
 ```
-It is assumed that Int is the first argument and needs to be a number.  If in doubt, use Runexe 0 "{Command}" or qualify them with -Int: and -Cmd:
+It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Runexe 0 "{Command}"``` or qualify them with ```-Int:``` and ````-Cmd:````
+
 Non-existent .EXE commands will error with a missing file dialog.
+
 Once the command has been started, a system try icon/cog appears which can be used to present the Int and Command interpretations.
 
-#
+# 
 
-Add Int options below for combinations as required.  Some conflict, testing is required...  Examples are further below.
+**Int options**
+
+Add ```-Int``` options below for combinations as required.  Some conflict, testing is required...  Examples are further below.
+
 Possible Int values are various combinations of:
  - +1: Systray icon off (Systray icon is on by default, unless using #1 or #32)
  - +2: Run [Command] in a hidden window
@@ -24,7 +29,7 @@ Possible Int values are various combinations of:
 
 #
 
-A note about Command getting complicated:
+A note about ```[cmd]``` getting complicated:
 Don't forget quotes around your URL / Path. If your path has spaces, you may need to duplicate your quotes, E.g:
 ```
 Run.exe "MSACCESS.EXE ""{UNCPath\File.mde}"""
@@ -33,13 +38,18 @@ Of course, this is problematic (at best) and behaves differently if calling the 
 
 #
 
-## Examples:
-**Each of these lines work:**
+## Examples
+**Each of these work:**
 ```
 run.exe 0 "notepad.exe ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+
 powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+
 run.exe 32 "Control.exe mmsys.cpl"
-run.exe 1072 """C:\Program Files\Internet Explorer\iexplore.exe"" about:blank"
+
+run.exe 1072 """C:\Program Files\Internet 
+Explorer\iexplore.exe"" about:blank"
+
 run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
 ```
 **DOESNT WORK:**
@@ -47,3 +57,8 @@ run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
 powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
 ```
 - (this struggles with double quotes for some dumb reason!)
+
+#
+
+## TODO
+I plan to compile this with an additional option to call either the 64-bit paths (via $env:Windir\Sysnative\) or the 32-bit paths (via SysWow64) - famous last words of course...  
