@@ -34,7 +34,7 @@ Of course, this is problematic (at best) and behaves differently if calling the 
 #
 
 ## Examples:
-**Works:**
+**Each of these lines work:**
 ```
 run.exe 0 "notepad.exe ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
 powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
@@ -46,4 +46,4 @@ run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
 ```
 powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
 ```
--(struggles with double quotes for some dumb reason!)
+- (this struggles with double quotes for some dumb reason!)
