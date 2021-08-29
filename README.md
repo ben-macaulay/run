@@ -24,7 +24,8 @@ Possible Int values are various combinations of:
  - +8: Run [Command] in a maximised window
  - +16: Convert [Command] so it uses 8.3 paths - This only applies to the .EXE and won't convert 'argument' paths to 8.3.
  - +32: Wait for [Command] to complete (otherwise, waits for 10s before exiting).  This disables systray like #1.
- - +64: Run [Command] in a the default browser (supply a URL to the users preferred http handler)
+ - +64: Launch [Command] using $Env:Windir\Sysnative (via WoW64 redirection) - you'll need to pass something like reg.exe for it to 'hit' the x64 binaries...
+ - +128: Run [Command] in a the default browser (supply a URL to the users preferred http handler)
  - +1024: Display a debug message prior to launching [Command].  Useful if using #1 or #32 (or don't have a taskbar?)
 
 #

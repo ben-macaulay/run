@@ -1,16 +1,19 @@
 Param (
     [Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
-    [Parameter (Mandatory=$false)][string]$Cmd = "cmd.exe"
+    [Parameter (Mandatory=$false)][string]$Cmd = "cmd.exe",
+    [Parameter (Mandatory=$false)][string[]]$Overflow
+   
     )
-
 
 #region Dev/Test setup
 if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
-    $int = 4
+    $int = 64
     $cmd = """C:\Program Files (x86)\Internet Explorer\iexplore.exe"" http://google.com"
     $cmd = "notepad.exe"; if ( test-path Variable:exeargs ) { remove-item Variable:exeargs }
     $cmd = "notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+    $cmd = "C:\Windows\System32\odbcad32.exe"
+    $cmd = "reg.exe"
     $debug = $true
 } elseif (Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
@@ -27,14 +30,15 @@ $cmd = $cmd.ToLower().Replace('-cmd:','')
 #region Int calculation logic
 $msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`n"
 if ( $Int -gt 0 )    { $msg = $msg+"`r`nReceived feature parameters:`r`n"}
-if ( $Int -ge 1024 ) { $debug = $true;    $Int = $Int - 1024; $msg = $msg+" - 1024: DEBUG on `r`n"}
-if ( $Int -ge 64 )   { $browser = $true;  $Int = $Int - 64;   $msg = $msg+" -   64: Browser on`r`n"}
-if ( $Int -ge 32 )   { $wait = $true;     $Int = $Int - 32;   $msg = $msg+" -   32: Wait on `r`n"}
-if ( $Int -ge 16 )   { $8dot3 = $true;    $Int = $Int - 16;   $msg = $msg+" -   16: 8.3 support on `r`n"}
-if ( $Int -ge 8 )    { $max = $true;      $Int = $Int - 8;    $msg = $msg+" -    8: Maximised on `r`n"}
-if ( $Int -ge 4 )    { $min = $true;      $Int = $Int - 4;    $msg = $msg+" -    4: Minimised on `r`n"}
-if ( $Int -ge 2 )    { $hide = $true;     $Int = $Int - 2;    $msg = $msg+" -    2: Hidden on `r`n"}
-if ( $Int -ge 1 )    { $iconoff = $true;  $Int = $Int - 1;    $msg = $msg+" -    1: Systray icon off (on by default) `r`n"}
+if ( $Int -ge 1024 )  { $debug = $true;    $Int = $Int - 1024;  $msg = $msg+" - 1024: DEBUG on `r`n"}
+if ( $Int -ge 128 )   { $browser = $true;  $Int = $Int - 128;   $msg = $msg+" -  128: Browser on`r`n"}
+if ( $Int -ge 64 )    { $64bit = $true;    $Int = $Int - 64;    $msg = $msg+" -   64: 64-bit on`r`n"}
+if ( $Int -ge 32 )    { $wait = $true;     $Int = $Int - 32;    $msg = $msg+" -   32: Wait on `r`n"}
+if ( $Int -ge 16 )    { $8dot3 = $true;    $Int = $Int - 16;    $msg = $msg+" -   16: 8.3 support on `r`n"}
+if ( $Int -ge 8 )     { $max = $true;      $Int = $Int - 8;     $msg = $msg+" -    8: Maximised on `r`n"}
+if ( $Int -ge 4 )     { $min = $true;      $Int = $Int - 4;     $msg = $msg+" -    4: Minimised on `r`n"}
+if ( $Int -ge 2 )     { $hide = $true;     $Int = $Int - 2;     $msg = $msg+" -    2: Hidden on `r`n"}
+if ( $Int -ge 1 )     { $iconoff = $true;  $Int = $Int - 1;     $msg = $msg+" -    1: Systray icon off (on by default) `r`n"}
 if (test-path Variable:\debug) {$msg = $msg+"Int remainder: $Int"}
 #endregion Int calculation logic
 
@@ -58,17 +62,44 @@ if ( $browser ) {  # then $cmd is just a URL?
 
 } else {
     # break down the command supplied -  Find out binary and if any args exist
+
     $exeends = $cmd.ToLower().IndexOf(".exe")+5                         # find the end of the first .exe - CASE-INSENSITIVE!
     if ($cmd.Length -gt $exeends) {
         $exeargs = $cmd.Substring($exeends)                             # everything else goes into the args
         $exeargs = $exeargs.Trim()                                      # strip spaces
         $exe = $cmd.Substring(0,$exeends)                               # Grab just the .EXE path
     } else {
-        $exeargs = $false
+        if ( $overflow ) { } #$exeargs = $overflow 
+        else { $exeargs = $false }
         $exe = $cmd
+    }
+
+    if ( $Overflow -and ($exeargs -ne $false) ) { 
+        $msg = $msg+"`r`n`r`Concatenating $Overflow into $exeargs"
+        $exeargs = "$exeargs $Overflow"
+    }
+
+    if ( $64bit ) {
+        $msg = $msg+"`r`n`r`nWoW64 support on: "
+        if ( $exe.ToLower().contains($env:SystemRoot.ToLower()) ) { 
+            $exe = $exe.ToLower().Replace('system32','sysnative') 
+            $msg = $msg+"Converting System32 to Sysnative"
+        } else { 
+            if ( test-path "$env:SystemRoot\Sysnative\$exe" ) { 
+                $exe = "$env:SystemRoot\Sysnative\$exe"
+                $msg = $msg+"Assuming Sysnative on unqualified command."
+            } else {
+                $msg = $msg+"Hacking WoW64 via $Env:windir\Sysnative\cmd.exe - THIS IS PROBABLY NEVER USED / REDUNDANT?"
+                if ( $exeargs ) { $exeargs = "/c $Env:windir\System32\$exe $exeargs" }
+                else { $exeargs = "/c $Env:windir\System32\$exe" }
+                $exe = "$Env:windir\Sysnative\cmd.exe"
+            }
+        }
     }
     $exe = $exe.replace('"','')                                         # strip quotes
     $exe = $exe.trim()                                                  # blanks
+
+    
     $msg = $msg+"`r`n`r`nConverted to: [$exe]`r`n`Arguments: [$exeargs]"
 
 
