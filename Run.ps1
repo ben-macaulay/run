@@ -1,6 +1,6 @@
 Param (
     [Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
-    [Parameter (Mandatory=$false)][string]$Cmd = "cmd.exe",
+    [Parameter (Mandatory=$false)][string[]]$Cmd = "cmd.exe",
     [Parameter (Mandatory=$false)][string[]]$Overflow
    
     )

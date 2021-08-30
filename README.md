@@ -55,7 +55,7 @@ Another approach when quotes get complicated is to not qualify the parameter nam
 ```
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
 ```
-This is usually successful, but I would'nt be surprised if an unintended limitation exists, somewhere...
+This is usually successful, but I would'nt be surprised if an unintended limitation exists, somewhere...  It really only works for the third parameter.
 
 #
 
@@ -80,7 +80,9 @@ run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
 ```
 powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
 ```
-- (this struggles with double quotes for some dumb reason!  Instead, try using:
+- (this struggles with double quotes for some dumb reason)  Instead, try using:
+
+**Works:**
 
 ```
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
@@ -90,4 +92,7 @@ powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Packages\System\
 #
 
 ## TODO
-I plan to have another attempt at the 8.3 support and look for periods in the arguments in case I can convert those as well...
+I plan to: 
+
+* have another attempt at the 8.3 support and look for periods in the arguments in case I can convert those as well...
+* Extend the parameter handling so that the script passes third and fourth parameters to [Cmd], assuming it's something quirky like a rundll32.exe call or something awful like javaw.exe -jar [file] -Xms1024M -Xmx4096M, etc.
