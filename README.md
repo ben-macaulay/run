@@ -1,5 +1,19 @@
 # Run
 
+**What and why**
+
+Run.exe is a silly tool for overcomplicated environments where an App-V package contains files that aren't used in the launching process.
+
+Consider a bubble for an ActiveX control, or a launch script that resides on a network share, for example.
+
+Instead of figuring out which App-V bubble to launch the process within, Run.exe is added to application install during sequencing and then launching whatever is packaged via the embedded Run.exe, this causes the App-V client to use the appropriate bubble for the IE11 window or whatever the package is for...
+
+**How**
+
+The automated application sequencing script creates a GUID directory for the PVAD and copies Run.exe into this as part of the installation.
+
+The assumption is that the App-V entrypoints are suppressed in the deployment configuration .XML files and instead published shortcuts are used...
+
 **Usage:**
 ```
     Run.exe [Int] [Command]
