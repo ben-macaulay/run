@@ -48,7 +48,23 @@ Concatenating argument overflow [F:\Packages\System\AutoIt\CoookieClickerScript.
 Received command: [powershell.exe -exec bypass -nop -f f:\packages\games\minecraft\mc.server.startup.ps1]
 Converted to: [powershell.exe -exec bypass -nop -f f:\packages\games\minecraft\mc.server.startup.ps1]
 
-why does this 'catch' run.exe and not powershell.exe:
+why does this 'catch' cmd=run.exe and not powershell.exe:
 "%~dp0run.exe" 1024 "powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"
-:TEST
+this works perfectly - cmd=notepad and args is the rest:
 "%~dp0run.exe" 1024 notepad.exe "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+
+"%~dp0run.exe" 1024 "powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"
+Received command: [
+powershell.exe -exec bypass -nop -f f:\packages\games\minecraft\mc.server.startup.ps1]
+Converted to: [ll.exe]
+Arguments: [-exec bypass -nop -f f:\packages\games\minecraft\mc.server.startup.ps1]
+%~dp0run.exe 1024 "powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"
+NOW THIS WORKS:
+powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1024 "powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"
+%~dp0run.exe 1024 "powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"
+powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1024 C:\Windows\System32\notepad.exe
+
+"%~dp0run.exe" 1024 "notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+:TEST
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:notepad.EXE "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
