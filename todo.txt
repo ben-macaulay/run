@@ -1,0 +1,17 @@
+See OneNote
+
+Set Cmd to use ValueFromRemainingArguments  - https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-5.1#valuefromremainingarguments-argument
+
+
+Random .md notes:
+**What**
+
+Run.exe is a silly tool for overcomplicated environments where an App-V package contains files that aren't used in the launching process.  Consider a bubble for an ActiveX control, or a launch script that resides on a network share, for example.
+
+Instead of figuring out which App-V bubble to launch the process within, Run.exe is added to application install during sequencing, then launching it via Run.exe causes the App-V client to use the appropriate bubble for the IE11 window or whatever the process is...
+
+**How**
+
+The automated application sequencing script creates a GUID directory for the PVAD and copies Run.exe into this as part of the installation.
+
+The assumption is that the App-V entrypoints are suppressed in the deployment configuration .XML files and instead published shortcuts are used...
