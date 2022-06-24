@@ -15,12 +15,21 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $cmd = "C:\Windows\System32\odbcad32.exe"
     $cmd = "reg.exe"
     $debug = $true
+    # 2022-03-08
+    $int = 1024
+    $cmd = "F:\Packages\System\Packaging\RunV3\run\run.exe ""powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"""
+    $cmd = "powershell.exe -exec bypass -nop -file F:\Packages\System\Packaging\RunV3\run\run.ps1 ""powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.ServerStartup.ps1"""
+    $Current_File = "Run.exe"
+    $Current_File = "Run.ps1"
 } elseif (Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
 } else {
     # breaks when compiled: $Current_File = ([io.fileinfo]$MyInvocation.MyCommand.Definition).Name
     # https://stackoverflow.com/questions/53134414/powershell-myinvocation-mycommand-path-returns-null-when-convert-script-in-exe
-    if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript") { $Current_File = ([io.fileinfo]$MyInvocation.MyCommand.Definition).Name }
+    if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript") { 
+        # $Current_File = ([io.fileinfo]$MyInvocation.MyCommand.Definition).Name 
+        $Current_File = Split-Path -Leaf -Path $MyInvocation.MyCommand.Definition 
+    }
     else { $Current_File = Split-Path -Leaf -Path ([Environment]::GetCommandLineArgs()[0]) }
 }
 #endregion
@@ -63,15 +72,30 @@ if ( $browser ) {  # then $cmd is just a URL?
 } else {
     # break down the command supplied -  Find out binary and if any args exist
 
-    $exeends = $cmd.ToLower().IndexOf(".exe")+5                         # find the end of the first .exe - CASE-INSENSITIVE!
-    if ($cmd.Length -gt $exeends) {
-        $exeargs = $cmd.Substring($exeends)                             # everything else goes into the args
-        $exeargs = $exeargs.Trim()                                      # strip spaces
-        $exe = $cmd.Substring(0,$exeends)                               # Grab just the .EXE path
+
+    if ( $cmd.Contains($Current_File) ) {                                       # remove run.exe from the logic so it only deals with the secondary process (I guess this trims the unspecified -int as well, possibly):
+        $msg = $msg+"`r`n`r`Current file: [$Current_File] - this was also found in Cmd..."
+        $StripSelfPosition = $cmd.ToLower().IndexOf($Current_File.ToLower())    # find where run.??? 'begins' in the string
+        $StripSelfPosition = $StripSelfPosition+$Current_File.Length+1          # include run.??? + the space
+        $msg = $msg+"`r`n`r`Stripping from char: [$StripSelfPosition]"
+        $cmdToWorkWith = $cmd.Substring($StripSelfPosition)                     # So this is the meat of what we're actually wanting launched
+        $msg = $msg+"`r`n`r`CmdToWorkWith: [$cmdToWorkWith]"
+    } else { 
+        $cmdToWorkWith = $cmd.ToLower()                                         # why can't i just copy the variable $cmdtoWorkWith = $cmd?
+    }
+
+    
+    $exeends = $cmdToWorkWith.ToLower().IndexOf(".exe")+5                # find the end of the first .exe - CASE-INSENSITIVE!
+    if ($cmdToWorkWith.Length -gt $exeends) {
+        $exe = $cmdToWorkWith.Substring(0,$exeends)                      # Grab just the .EXE path
+        $msg = $msg+"`r`n`r`Found long arguments. Trimming to [$exe]"
+        $exeargs = $cmdToWorkWith.Substring($exeends)                    # everything else goes into the args
+        $exeargs = $exeargs.Trim()                                       # strip spaces
     } else {
+        # $msg = $msg+"`r`n`n`r`Didnt find long arguments. CmdToWorkWith.Length:$($cmdToWorkWith.Length), Exeends:$exeends"   # maybe we're just launching notepad.exe?
         if ( $overflow ) { } #$exeargs = $overflow 
         else { $exeargs = $false }
-        $exe = $cmd
+        $exe = $cmdToWorkWith
     }
 
     if ( $Overflow -and ($exeargs -ne $false) ) { 
@@ -269,7 +293,7 @@ $iconbase64 = 'AAABAAYAAAAAAAEAIAAcYwAAZgAAAICAAAABACAAKAgBAIJjAABAQAAAAQAgAChCA
 
 
     # spawn process...  Fsckin finally!
-    Start-Process @startParams                               # run the function with the splatted hashtable.  Replaces:
+    $returncode = Start-Process @startParams                                  # run the function with the splatted hashtable.  Replaces:
 
 
     # Create an application context for it to all run within - Thanks Chrissy

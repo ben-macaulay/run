@@ -71,8 +71,7 @@ powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE F:\Packag
 
 run.exe 32 "Control.exe mmsys.cpl"
 
-run.exe 1072 """C:\Program Files\Internet 
-Explorer\iexplore.exe"" about:blank"
+run.exe 1072 """C:\Program Files\Internet Explorer\iexplore.exe"" about:blank"
 
 run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
 ```
@@ -85,7 +84,15 @@ powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE ""F:\Pack
 **Works:**
 
 ```
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:notepad.EXE "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+```
+**or:**
+```
+"%~dp0run.exe" 0 "notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+
+"%~dp0run.exe" -int:0 -cmd:"notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
 ```
 
 
