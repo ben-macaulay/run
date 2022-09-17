@@ -77,5 +77,7 @@ PROCMON CONFIRMS THE .PS1 IS ACCESSED, BUT NOT THE .XML FILE IT OPENS: "%~dp0run
 Yet this actually works fine!!!  powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"powershell.exe -nologo -file ""F:\Packages\Games\Valorant\ValorantLauncher.ps1"""
 So my compiled PoSh isn't actually running posh stuff like  I think it should, unfortunately.
 IM AN IDIOT AND FORGOT -EXEC BYPASS!
-:TEST
 "%~dp0run.exe" 0 "powershell.exe -exec bypass -f ""F:\Packages\Games\Valorant\ValorantLauncher.ps1"""
+:TEST
+
+"%~dp0run.exe" -int:1024 -cmd:"cmd.exe /k start ""test window"" /wait notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
