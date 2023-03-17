@@ -78,6 +78,18 @@ Yet this actually works fine!!!  powershell.exe -exec bypass -f "%~dp0run.ps1" -
 So my compiled PoSh isn't actually running posh stuff like  I think it should, unfortunately.
 IM AN IDIOT AND FORGOT -EXEC BYPASS!
 "%~dp0run.exe" 0 "powershell.exe -exec bypass -f ""F:\Packages\Games\Valorant\ValorantLauncher.ps1"""
-:TEST
-
 "%~dp0run.exe" -int:1024 -cmd:"cmd.exe /k start ""test window"" /wait notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+
+17/03/2023:
+echo testing 64-bit stuff!! (set custom ODBC regkeys!)
+"%~dp0run.exe" -int:1088 -cmd:"cmd.exe /k reg.exe query hklm\software\odbc\odbc.ini"
+(finds the 64-bit branch!)
+
+"%~dp0run.exe" -int:1024 -cmd:"cmd.exe /k reg.exe query hklm\software\odbc\odbc.ini"
+(finds the 32-bit branch!)
+
+This also works - using the 3rd argument for overflow:
+powershell.exe -exec bypass -file "%~dp0run.ps1" 1088 "cmd.exe" "/k reg.exe query ""hklm\software\odbc\odbc.ini"""
+"%~dp0run.exe" 1088 "cmd.exe" "/k reg.exe query ""hklm\software\odbc\odbc.ini"""
+:TEST
+pause

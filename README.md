@@ -103,3 +103,7 @@ I plan to:
 
 * have another attempt at the 8.3 support and look for periods in the arguments in case I can convert those as well...
 * Extend the parameter handling so that the script passes third and fourth parameters to [Cmd], assuming it's something quirky like a rundll32.exe call or something awful like javaw.exe -jar [file] -Xms1024M -Xmx4096M, etc.
+  * I _have_ found that this works well **IF** the cmd and args are in separate parameters: 
+    ```
+    run.exe 1088 "cmd.exe" "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""...
+    ```
