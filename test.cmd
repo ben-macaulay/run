@@ -66,5 +66,30 @@ powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1024 C:\Windows\System32\n
 
 "%~dp0run.exe" 1024 "notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
-:TEST
 powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:notepad.EXE "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+
+2022-06-24: Experimenting with ValueFromRemainingArguments
+Even an .LNK with this doesn't work: cmd.exe /k start "test window" /wait notepad.EXE "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+What happens is a window titled test is created... I need some better tests.
+
+THIS FINDS THE .PS1 BUT BAILS OUT IMMEDIATELY WITH NO ERROR OR ANYTHING.
+PROCMON CONFIRMS THE .PS1 IS ACCESSED, BUT NOT THE .XML FILE IT OPENS: "%~dp0run.exe" 0 "powershell.exe -nologo -file ""F:\Packages\Games\Valorant\ValorantLauncher.ps1"""
+Yet this actually works fine!!!  powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"powershell.exe -nologo -file ""F:\Packages\Games\Valorant\ValorantLauncher.ps1"""
+So my compiled PoSh isn't actually running posh stuff like  I think it should, unfortunately.
+IM AN IDIOT AND FORGOT -EXEC BYPASS!
+"%~dp0run.exe" 0 "powershell.exe -exec bypass -f ""F:\Packages\Games\Valorant\ValorantLauncher.ps1"""
+"%~dp0run.exe" -int:1024 -cmd:"cmd.exe /k start ""test window"" /wait notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+
+17/03/2023:
+echo testing 64-bit stuff!! (set custom ODBC regkeys!)
+"%~dp0run.exe" -int:1088 -cmd:"cmd.exe /k reg.exe query hklm\software\odbc\odbc.ini"
+(finds the 64-bit branch!)
+
+"%~dp0run.exe" -int:1024 -cmd:"cmd.exe /k reg.exe query hklm\software\odbc\odbc.ini"
+(finds the 32-bit branch!)
+
+This also works - using the 3rd argument for overflow:
+powershell.exe -exec bypass -file "%~dp0run.ps1" 1088 "cmd.exe" "/k reg.exe query ""hklm\software\odbc\odbc.ini"""
+"%~dp0run.exe" 1088 "cmd.exe" "/k reg.exe query ""hklm\software\odbc\odbc.ini"""
+:TEST
+pause
