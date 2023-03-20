@@ -91,5 +91,13 @@ echo testing 64-bit stuff!! (set custom ODBC regkeys!)
 This also works - using the 3rd argument for overflow:
 powershell.exe -exec bypass -file "%~dp0run.ps1" 1088 "cmd.exe" "/k reg.exe query ""hklm\software\odbc\odbc.ini"""
 "%~dp0run.exe" 1088 "cmd.exe" "/k reg.exe query ""hklm\software\odbc\odbc.ini"""
+
+@ work:
+Didn't work - doesn't interpret -init: "%~dp0run.exe" 0 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
+Works beautifully!: "%~dp0run.exe" 0 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe -init -poll exit"
+Didn't work - doesn't interpret -init: "%~dp0run.exe" 1024 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" "-init -poll exit"
+Trims arguments as above (finds .EXE and takes the right for Args) : "%~dp0run.exe" 1024 """C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe"" -init -poll exit"
+Doesn't have a param arg for -init (doesn't go to overflow): "%~dp0run.exe" -int:1024 -c:"C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
 :TEST
+"%~dp0run.exe" -int:1024 -cmd:"C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -overflow:"-init -poll exit"
 pause
