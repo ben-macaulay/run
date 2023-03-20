@@ -98,6 +98,32 @@ Works beautifully!: "%~dp0run.exe" 0 "C:\Program Files (x86)\Citrix\ICA Client\S
 Didn't work - doesn't interpret -init: "%~dp0run.exe" 1024 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" "-init -poll exit"
 Trims arguments as above (finds .EXE and takes the right for Args) : "%~dp0run.exe" 1024 """C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe"" -init -poll exit"
 Doesn't have a param arg for -init (doesn't go to overflow): "%~dp0run.exe" -int:1024 -c:"C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
-:TEST
 "%~dp0run.exe" -int:1024 -cmd:"C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -overflow:"-init -poll exit"
+
+REM back at home again. ValueFromRemainingArguments = $true)][string[]]$Overflow  
+REM Both these seem to work OK:
+powershell.exe -exec bypass -file "%~dp0run.ps1" 1024 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
+powershell.exe -exec bypass -file "%~dp0run.ps1" 1024 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" "-init -poll exit"
+"%~dp0run.exe" 1024 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
+"%~dp0run.exe" 0 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
+"%~dp0run.exe" -int:1088 -cmd:"cmd.exe /k reg.exe query hklm\software\odbc\odbc.ini"
+"%~dp0run.exe" 1024 -cmd:"cmd.exe /k reg.exe query hklm\software\odbc\odbc.ini"
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int:1024 -cmd:"notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int:1024 -cmd:notepad.EXE "F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"
+run.exe notepad2.exe "%~dp0readme.md" -int:1024
+is 8.3 converting?!  YES!
+powershell.exe -exec bypass -f "%~dp0run.ps1" 1040 "C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe" -init -poll exit
+REM Sorta works, doesn't 8.3 the arguments, 'cos I can't be bothered building a function to sift through args and checkingfor files and converting their path: powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1040 "C:\Program Files\DIFX\4A7292F75FEBBD3C\tool_amd64.exe" /d "C:\Program Files\DIFX\4A7292F75FEBBD3C"
+Still works: powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1024 "cmd.exe" "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+Doesn't work:run.exe 1024 "cmd.exe" /k reg.exe query "HKLM\software\Microsoft\Windows NT\CurrentVersion"
+DOES WORK:powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1024 cmd.exe /k reg.exe query """HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+DOES WORK:powershell.exe -exec bypass -nop -file "%~dp0run.ps1" 1024 cmd.exe "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+powershell.exe -exec bypass -nop -file "%~dp0run.ps1" -c:cmd.exe -i 1024 "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+DOESNT WORK - NEEDS INT OR OVERFLOW: %~dp0run.exe -c:cmd.exe "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+WORKS:%~dp0run.exe -c:cmd.exe -o:"/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+WORKS:%~dp0run.exe 0 cmd.exe "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+WORKS:run.exe 1024 cmd.exe -o"/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+WORKS:run.exe 1024 cmd.exe "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
+WORKS:"%~dp0run.exe" 128 https://old.reddit.com/r/sysadmin
+:TEST
 pause

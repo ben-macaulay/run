@@ -1,8 +1,35 @@
+<#
+.SYNOPSIS
+
+Run.ps1
+
+.DESCRIPTION
+
+Run.exe is a silly tool for overcomplicated environments where an App-V package contains files that aren't used in the launching process. Having run.exe being launched from the App-Vs file location causes the child processes to run in the App-V bubble.
+
+.INPUTS
+
+These are best explained in readme.md, not here.  However, at a high level, use:
+Int:        Bitwise operator specifying various features and alternatives to how the process should be loaded.
+Cmd:        The process to load
+Overflow:   Additional parameter arguments if required.
+
+.OUTPUTS
+
+A spawned process (ideally)
+
+.NOTES
+
+    Author   : Ben Macaulay 
+    Version  : 3.1 
+    Purpose  : Ad-hoc launcher to spawn processes in virtual environments
+
+#>
+
 Param (
-    [Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
-    [Parameter (Mandatory=$false)][string[]]$Cmd = "cmd.exe",
-    [Parameter (Mandatory=$false)][string[]]$Overflow
-   
+    [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
+    [Alias("c")][Parameter (Mandatory=$false)][string[]]$Cmd = "cmd.exe",
+    [Alias("o")][Parameter (Mandatory=$false, ValueFromRemainingArguments = $true)][string[]]$Overflow
     )
 
 #region Dev/Test setup
@@ -37,7 +64,7 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
 # Strip out flawed handling when compiled
 $cmd = $cmd.ToLower().Replace('-cmd:','')
 #region Int calculation logic
-$msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`n"
+$msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`nReceived Overflow: [$Overflow]`r`n"
 if ( $Int -gt 0 )    { $msg = $msg+"`r`nReceived feature parameters:`r`n"}
 if ( $Int -ge 1024 )  { $debug = $true;    $Int = $Int - 1024;  $msg = $msg+" - 1024: DEBUG on `r`n"}
 if ( $Int -ge 128 )   { $browser = $true;  $Int = $Int - 128;   $msg = $msg+" -  128: Browser on`r`n"}
@@ -88,7 +115,7 @@ if ( $browser ) {  # then $cmd is just a URL?
     $exeends = $cmdToWorkWith.ToLower().IndexOf(".exe")+5                # find the end of the first .exe - CASE-INSENSITIVE!
     if ($cmdToWorkWith.Length -gt $exeends) {
         $exe = $cmdToWorkWith.Substring(0,$exeends)                      # Grab just the .EXE path
-        $msg = $msg+"`r`n`r`Found long arguments. Trimming to [$exe]"
+        $msg = $msg+"`r`n`r`CMD: Found long arguments. Trimming to [$exe]"
         $exeargs = $cmdToWorkWith.Substring($exeends)                    # everything else goes into the args
         $exeargs = $exeargs.Trim()                                       # strip spaces
     } else {
@@ -98,17 +125,26 @@ if ( $browser ) {  # then $cmd is just a URL?
         $exe = $cmdToWorkWith
     }
 
+
     if ( $Overflow -and ($exeargs -ne $false) ) { 
-        $msg = $msg+"`r`n`r`Concatenating argument overflow [$Overflow] after [$exeargs]"
+        $msg = $msg+"`r`n`r`OVERFLOW: Concatenating argument [$Overflow] after [$exeargs]"
         $exeargs = "$exeargs $Overflow"
     }
+
 
     if ( $64bit ) {
         $msg = $msg+"`r`n`r`nWoW64 support on: "
         if ( $exe.ToLower().contains($env:SystemRoot.ToLower()) ) { 
             $exe = $exe.ToLower().Replace('system32','sysnative') 
             $msg = $msg+"Converting System32 to Sysnative"
-        } else { 
+        } 
+        <# How (or should?) we try to tream program files calls for Wow64? 
+        elseif ( $exe.ToLower().contains(${env:ProgramFiles(x86)}.ToLower()) ) { 
+                $exe = $exe.ToLower().Replace('system32','sysnative') 
+                $msg = $msg+"Converting System32 to Sysnative"
+        } 
+        #>
+        else {
             if ( test-path "$env:SystemRoot\Sysnative\$exe" ) { 
                 $exe = "$env:SystemRoot\Sysnative\$exe"
                 $msg = $msg+"Assuming Sysnative on unqualified command."
@@ -125,12 +161,6 @@ if ( $browser ) {  # then $cmd is just a URL?
 
     
     $msg = $msg+"`r`n`r`nConverted to: [$exe]`r`n`Arguments: [$exeargs]"
-
-
-<# I decided not to bother with this, PoSh is already strict enough on launching things...  Not sure which is the lesser mistake TBH!
-    if ( test-path $exe ) {"found $exe" }
-    else { write-host $msg; throw "Couldn't find $exe - aborting..." } # No .EXE - no bueno...
-#>
 }
 
 
@@ -148,7 +178,8 @@ if ( $8dot3 ) { # https://community.idera.com/database-tools/powershell/powertip
         if ($rv -ne 0){
             $exe = $sb.ToString()
             $msg = $msg+"`r`n`r`nFurther converted to 8.3:'$exe`'`r`n`Arguments:'$exeargs`'"
-        } else { throw "Errors converting $cmd to 8.3 - Are 8.3 names supported by the filesystem?" }
+        } else { throw "Errors converting $cmd to 8.3 - Does the file exist and the filesystem supports 8.3 paths?" }
+        
     } else { throw "8.3 is disabled by regkey NtfsDisable8dot3NameCreation!" }
 }
 
