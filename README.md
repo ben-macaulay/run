@@ -33,15 +33,15 @@ Once the command has been started, a system try icon/cog appears which can be us
 Add ```-Int``` options below for combinations as required.  Some conflict, testing is required...  Examples are further below.
 
 Possible Int values are various combinations of:
- - +1: Systray icon off (Systray icon is on by default, unless using #1 or #32)
- - +2: Run [Command] in a hidden window
- - +4: Run [Command] in a minimised window (not everything actually supports/honours this)
- - +8: Run [Command] in a maximised window
- - +16: Convert [Command] so it uses 8.3 paths - This only applies to the .EXE and won't convert 'argument' paths to 8.3.  Supply the full path: C:\Program Files\Internet Explorer\Iexplore.exe.
- - +32: Wait for [Command] to complete (otherwise, waits for 5 seconds before exiting).  This disables systray as per +1.
- - +64: Semi-experimental 64-bit support (Run.exe is compiled as 32-bit by default). Launch [Command] using $Env:Windir\Sysnative (via WoW64 redirection) - you'll need to pass something like reg.exe for it to 'hit' the x64 binaries.  Only works for System32 paths and won't convert an argument/parameter to an 8.3 path - this relies on the script finding the [Command] and asking the OS for it's 8.3-equivalent path.
- - +128: Run [Command] in a the default browser (supply a URL to the users preferred http handler)
- - +1024: Display a debug message prior to launching [Command].  Useful if using #1 or #32 (or don't have a taskbar?)
+ - **+1**: Systray icon off (Systray icon is on by default, unless using #1 or #32)
+ - **+2**: Run [Command] in a hidden window
+ - **+4**: Run [Command] in a minimised window (not everything actually supports/honours this)
+ - **+8**: Run [Command] in a maximised window
+ - **+16**: Convert [Command] so it uses 8.3 paths - This only applies to the .EXE and won't convert 'argument' paths to 8.3.  Supply the full path: C:\Program Files\Internet Explorer\Iexplore.exe.
+ - **+32**: Wait for [Command] to complete (otherwise, waits for 5 seconds before exiting).  This disables systray as per +1.
+ - **+64**: Semi-experimental 64-bit support (Run.exe is compiled as 32-bit by default). Launch [Command] using $Env:Windir\Sysnative (via WoW64 redirection) - you'll need to pass something like reg.exe for it to 'hit' the x64 binaries.  Only works for System32 paths and won't convert an argument/parameter to an 8.3 path - this relies on the script finding the [Command] and asking the OS for it's 8.3-equivalent path.
+ - **+128**: Run [Command] in a the default browser (supply a URL to the users preferred http handler)
+ - **+1024**: Display a debug message prior to launching [Command].  Useful if using #1 or #32 (or don't have a taskbar?)
 
 #
 
@@ -99,7 +99,9 @@ A browser-based example:
 run.exe 128 http://stupid.intranet.url/legacypath
 ```
 #
-## DONE
+## DONE 
+(I think?)
+
 I've extended the parameter handling so that the script passes third and fourth parameters to [Cmd], assuming it's something quirky like a rundll32.exe call or something awful like javaw.exe -jar [file] -Xms1024M -Xmx4096M, etc.
 
 I _have_ found that this works well **IF** the cmd and args are in separate parameters: 
@@ -113,3 +115,4 @@ I _have_ found that this works well **IF** the cmd and args are in separate para
 I plan to: 
 
 * have another attempt at the 8.3 support and look for periods in the arguments in case I can convert those as well...
+* Possibly another int 256 for some sort of 'strict'/blind mode where $cmd is just spawned if the .exe can be found?

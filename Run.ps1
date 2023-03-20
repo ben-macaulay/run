@@ -7,6 +7,8 @@ Run.ps1
 
 Run.exe is a silly tool for overcomplicated environments where an App-V package contains files that aren't used in the launching process. Having run.exe being launched from the App-Vs file location causes the child processes to run in the App-V bubble.
 
+Hosted at github: https://github.com/ben-macaulay/run
+
 .INPUTS
 
 These are best explained in readme.md, not here.  However, at a high level, use:
@@ -20,7 +22,7 @@ A spawned process (ideally)
 
 .NOTES
 
-    Author   : Ben Macaulay 
+    Author   : Ben Macaulay
     Version  : 3.1 
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
@@ -164,7 +166,8 @@ if ( $browser ) {  # then $cmd is just a URL?
 }
 
 
-if ( $8dot3 ) { # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-file-paths-to-8-3-part-2
+if ( $8dot3 ) {
+    # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-file-paths-to-8-3-part-2
 
     $regblock = Get-ItemPropertyValue registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem -Name NtfsDisable8dot3NameCreation
     if ( $regblock -ne 1 ) { # technically, the filesystem *could* still have 8.3 disabled, but at least the OS doesn't disallow it system-wide...
