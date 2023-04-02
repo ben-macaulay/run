@@ -23,15 +23,16 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.1 
+    Version  : 3.2 
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
 
 Param (
     [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
-    [Alias("c")][Parameter (Mandatory=$false)][string[]]$Cmd = "cmd.exe",
-    [Alias("o")][Parameter (Mandatory=$false, ValueFromRemainingArguments = $true)][string[]]$Overflow
+    [Alias("c")][Parameter (Mandatory=$false)]$Cmd = "cmd.exe",
+    [Alias("a")][Parameter (Mandatory=$false)]$Arguments,
+    [Alias("w")][Parameter (Mandatory=$false)]$WkDir
     )
 
 #region Dev/Test setup
@@ -66,7 +67,7 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
 # Strip out flawed handling when compiled
 $cmd = $cmd.ToLower().Replace('-cmd:','')
 #region Int calculation logic
-$msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`nReceived Overflow: [$Overflow]`r`n"
+$msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`n"
 if ( $Int -gt 0 )    { $msg = $msg+"`r`nReceived feature parameters:`r`n"}
 if ( $Int -ge 1024 )  { $debug = $true;    $Int = $Int - 1024;  $msg = $msg+" - 1024: DEBUG on `r`n"}
 if ( $Int -ge 128 )   { $browser = $true;  $Int = $Int - 128;   $msg = $msg+" -  128: Browser on`r`n"}
@@ -77,7 +78,7 @@ if ( $Int -ge 8 )     { $max = $true;      $Int = $Int - 8;     $msg = $msg+" - 
 if ( $Int -ge 4 )     { $min = $true;      $Int = $Int - 4;     $msg = $msg+" -    4: Minimised on `r`n"}
 if ( $Int -ge 2 )     { $hide = $true;     $Int = $Int - 2;     $msg = $msg+" -    2: Hidden on `r`n"}
 if ( $Int -ge 1 )     { $iconoff = $true;  $Int = $Int - 1;     $msg = $msg+" -    1: Systray icon off (on by default) `r`n"}
-if (test-path Variable:\debug) {$msg = $msg+"Int remainder: $Int"}
+if (test-path Variable:\debug) {$msg = $msg+"Int remainder: $Int`r`n`r`n"}
 #endregion Int calculation logic
 
 
@@ -113,7 +114,24 @@ if ( $browser ) {  # then $cmd is just a URL?
         $cmdToWorkWith = $cmd.ToLower()                                         # why can't i just copy the variable $cmdtoWorkWith = $cmd?
     }
 
-    
+
+$SkipLegacyCode=$false
+if ($Arguments) {
+    # lets trust them...  They seem like they know what they're doing - and the branch below is such a mess!
+    $exe = $Cmd
+    if ($Arguments){
+        $msg = $msg+"Received Arguments: [$Arguments]`r`n"
+        $exeargs = $Arguments
+    }
+    $SkipLegacyCode=$true
+}
+if ($WkDir) {
+    $msg = $msg+"Received Working directory: [$WkDir]`r`n"
+    $SkipLegacyCode=$true
+}
+
+if ( $SkipLegacyCode -ine $true) {
+    ### Messy shit it's really too hard to hang on to...
     $exeends = $cmdToWorkWith.ToLower().IndexOf(".exe")+5                # find the end of the first .exe - CASE-INSENSITIVE!
     if ($cmdToWorkWith.Length -gt $exeends) {
         $exe = $cmdToWorkWith.Substring(0,$exeends)                      # Grab just the .EXE path
@@ -122,17 +140,17 @@ if ( $browser ) {  # then $cmd is just a URL?
         $exeargs = $exeargs.Trim()                                       # strip spaces
     } else {
         # $msg = $msg+"`r`n`n`r`Didnt find long arguments. CmdToWorkWith.Length:$($cmdToWorkWith.Length), Exeends:$exeends"   # maybe we're just launching notepad.exe?
-        if ( $overflow ) { } #$exeargs = $overflow 
+        if ( $Arguments ) { } #$exeargs = $Arguments 
         else { $exeargs = $false }
         $exe = $cmdToWorkWith
     }
 
 
-    if ( $Overflow -and ($exeargs -ne $false) ) { 
-        $msg = $msg+"`r`n`r`OVERFLOW: Concatenating argument [$Overflow] after [$exeargs]"
-        $exeargs = "$exeargs $Overflow"
+    if ( $Arguments -and ($exeargs -ne $false) ) { 
+        $msg = $msg+"`r`n`r`OVERFLOW: Concatenating argument [$Arguments] after [$exeargs]"
+        $exeargs = "$exeargs $Arguments"
     }
-
+    ### End of messy shit it's really too hard to hang on to...
 
     if ( $64bit ) {
         $msg = $msg+"`r`n`r`nWoW64 support on: "
@@ -163,6 +181,7 @@ if ( $browser ) {  # then $cmd is just a URL?
 
     
     $msg = $msg+"`r`n`r`nConverted to: [$exe]`r`n`Arguments: [$exeargs]"
+}
 }
 
 
@@ -202,7 +221,9 @@ $startParams = @{ FilePath = $exe }
 if ($ws) { $startParams.WindowStyle = $ws }                #  conditionally add WindowStyle
 if ($wait) { $startParams.wait = $true }                   # conditionally add Wait
 if ($exeargs) { $startParams.ArgumentList = $exeargs }     # conditionally add arguments
+if ($wkdir) { $startParams.WorkingDirectory = $WkDir }     # conditionally add working direcotry
 #endregion Splatting for Start-Process
+
 
 
 #The systray icon and wait can't really co-exist, so:
