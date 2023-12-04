@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.2 
+    Version  : 3.3 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -126,6 +126,11 @@ if ($Arguments) {
     $SkipLegacyCode=$true
 }
 if ($WkDir) {
+    if ( $WkDir.StartsWith('-') ) {
+        # Manage if they've used -W or -WkDir by finding the first ':' 
+        # Necessary 'cos when compiled WkDir = '-W:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
+        $wkDir = $wkDir.Substring( $WkDir.IndexOf(':')+1 )
+    }
     $msg = $msg+"Received Working directory: [$WkDir]`r`n"
     $SkipLegacyCode=$true
 }

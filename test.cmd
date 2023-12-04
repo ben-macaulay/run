@@ -125,5 +125,71 @@ WORKS:%~dp0run.exe 0 cmd.exe "/k reg.exe query ""HKLM\software\Microsoft\Windows
 WORKS:run.exe 1024 cmd.exe -o"/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
 WORKS:run.exe 1024 cmd.exe "/k reg.exe query ""HKLM\software\Microsoft\Windows NT\CurrentVersion"""
 WORKS:"%~dp0run.exe" 128 https://old.reddit.com/r/sysadmin
+
+
+
+Dec 2023 - another run at work playing around.
+Works:\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe 1024 """C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin\SelfService.exe"" -init -poll exit"
+Works if CD is \Root\: C:\ProgramData\Microsoft\AppV\Client\Integration\0728CF83-9E9C-43D4-988B-3B3288C4C400\Root\Run.exe 1056 "powershell.exe -nop -exec bypass -win Minimized -f Run-Alamut.ps1"
+
+8.3 + wait 
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe 1072 D:\AppV\5e3f30b4-a392-4598-a87f-2f286b8e8b3f\77077cdf-0ee4-4838-b25a-833a223306ab\Root\Duerr\VistaScan\VistaScanConfig.exe
+no systray, which is odd...  Ctx being a dick?
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe 1073 D:\AppV\5e3f30b4-a392-4598-a87f-2f286b8e8b3f\77077cdf-0ee4-4838-b25a-833a223306ab\Root\Duerr\VistaScan\VistaScanConfig.exe
+
+
+Doesn't Work -w: isn't being caught:
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe -i:1024 -c:SelfService.exe -a:"-init -poll exit" -w:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe -i:1024 -c:SelfService.exe -a:"-init -poll exit" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+...also doesn't Work -WkDir: isn't being caught
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe -int:1024 -cmd:SelfService.exe -arguments:"-init -poll exit" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+...also doesn't Work -WkDir: isn't being caught
+
+powershell.exe -exec bypass -nop -file "\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.ps1" -int:1024 -cmd:SelfService.exe -arguments:"-init -poll exit" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+can't dot-source?!  Is it applocker?
+powershell.exe -exec bypass -nop -file "C:\ProgramData\Microsoft\AppV\Client\Integration\0728CF83-9E9C-43D4-988B-3B3288C4C400\Root\Run.ps1" -int:1024 -cmd:SelfService.exe -arguments:"-init -poll exit" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+can't dot-source?!
+
+Applocker was always going to make .PS1 unuseable :(
+Try running on jumphost server:
+powershell.exe -exec bypass -nop -file "\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.ps1" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+Runs OK, and WkDir is handled as an arg properly (?!?) but doesn't splat accross to start-process?!n\0728CF83-9E9C-43D4-988B-3B3288C4C400\Root\Run.ps1" -int:1024 -cmd:SelfService.exe -arguments:"-init -poll exit" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+Output:
+    Received Arguments: [/k dir /x]
+    Received Working directory: [C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin]
+
+    Start-Process : This command cannot be run because either the parameter "WorkingDirectory" has a value that is not
+    valid or cannot be used with this command. Give a valid input and Run your command again.
+    At \\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.ps1:351 char:19
+
+
+Try again with .EXE:"\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.exe" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+chokes on wkDir - Received Working directory: [-WkDirC:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin]
+
+Made -WkDir handle stripping the argname
+"\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.exe" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+    Would be good but jumphost doesn't have the citrix client installed, silly!
+"\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.exe" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -WkDir:"C:\Program Files (x86)"
+    Works great!
+
+Testing on citrix host:
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe -int:1024 -cmd:SelfService.exe -arguments:"-init -poll exit" -WkDir:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+    works beautifully!
+
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe -int:1024 -cmd:SelfService.exe -arguments:"-init -poll exit" -W:"C:\Program Files (x86)\Citrix\Online Plugin\ICA Client\SelfServicePlugin"
+    works beautifully!
+
+
+On jumphost, testing PoSh again:
+powershell.exe -exec bypass -nop -file "\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.ps1" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -WkDir:"C:\Program Files (x86)"
+    Received Working directory: [\Program Files (x86)]
+PoSh takes the arguments differently, when compiled they're '-Wkdir:"blah"', not '"blah"'...
+    ...fix that handling if WkDir.StartsWith('-')
+
+powershell.exe -exec bypass -nop -file "\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.ps1" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -W:"C:\Program Files (x86)"
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -W:"C:\Program Files (x86)"
+    These work well :)
 :TEST
+
+
 pause
