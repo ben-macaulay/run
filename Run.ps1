@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.3 (don't forget to update compile.cmd!)
+    Version  : 3.4 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -117,10 +117,20 @@ if ( $browser ) {  # then $cmd is just a URL?
 
 $SkipLegacyCode=$false
 if ($Arguments) {
+    if ( $Arguments.StartsWith('-') ) {
+        # Manage if they've used -A or -Arguments by finding the first ':' 
+        # Necessary 'cos when compiled Arguments = '-A:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
+        $Arguments = $Arguments.Substring( $Arguments.IndexOf(':')+1 )
+    }
     # lets trust them...  They seem like they know what they're doing - and the branch below is such a mess!
     $exe = $Cmd
     if ($Arguments){
         $msg = $msg+"Received Arguments: [$Arguments]`r`n"
+        #check if we need to wrap it in quotes
+        if ( -NOT ($Arguments.StartsWith('"') ) -and $Arguments.Contains(' ') ) {
+            $Arguments = """$Arguments"""
+            $msg = $msg+"...wrapped Arguments in quotes due to spaces. `r`n New arguments:[$Arguments]"
+        }
         $exeargs = $Arguments
     }
     $SkipLegacyCode=$true

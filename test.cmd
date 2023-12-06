@@ -189,7 +189,14 @@ PoSh takes the arguments differently, when compiled they're '-Wkdir:"blah"', not
 powershell.exe -exec bypass -nop -file "\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run.ps1" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -W:"C:\Program Files (x86)"
 \\wn0packages\Packages\_EUC\SourceControl\RunV3\run\Run -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -W:"C:\Program Files (x86)"
     These work well :)
+
+"%~dp0run.exe" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x" -W:"C:\Program Files (x86)"
+"%~dp0run.exe" -int:1024 -cmd:cmd.exe -arguments:"/k dir /x ""C:\Program Files (x86)"""
+
+F:\Packages\System\Packaging\RunV3\run\run.exe -int:1024 -cmd:"F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe" -arguments:"F:\Users\ben\My Documents\AutoHotkey.ahk"
+    Found not working 'cos of the space in the arguments - do we need to carefully wrap it in quotes or something?
+F:\Packages\System\Packaging\RunV3\run\run.exe -int:1024 -cmd:"F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe" -arguments:"F:\Users\ben\My Documents\AutoHotkey.ahk"
+    Works after including the WkDir fix and handling the quotes
 :TEST
-
-
+F:\Packages\System\Packaging\RunV3\run\run.exe -int:1024 -cmd:"F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe" -a:"F:\Users\ben\My Documents\AutoHotkey.ahk"
 pause
