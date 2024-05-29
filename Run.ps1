@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.4 (don't forget to update compile.cmd!)
+    Version  : 3.5 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -31,7 +31,7 @@ A spawned process (ideally)
 Param (
     [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
     [Alias("c")][Parameter (Mandatory=$false)]$Cmd = "cmd.exe",
-    [Alias("a")][Parameter (Mandatory=$false)]$Arguments,
+    [Alias("a")][Parameter (Mandatory=$false)]$Args,
     [Alias("w")][Parameter (Mandatory=$false)]$WkDir
     )
 

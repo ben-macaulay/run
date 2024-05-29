@@ -16,11 +16,11 @@ The assumption is that the App-V entrypoints are suppressed in the deployment co
 
 **Usage:**
 ```
-    Run.exe [Int] [Command] [Overflow]
-    Run.ps1 -int:[Int] -cmd:[Command] -overflow:[Overflow]
-    Run.exe -i:[Int] -c:[Command] -o:[Overflow parameters/files, etc.]
+    Run.exe [Int] [Command] [Arguments]
+    Run.ps1 -int:[Int] -cmd:[Command] -Args:[Arguments]
+    Run.exe -i:[Int] -c:[Command] -a:[Arguments parameters/files, etc.]
 ```
-It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Overflow:|-o:````
+It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Args:|-a:````
 
 Non-existent .EXE commands will error with a missing file dialog.
 
@@ -57,7 +57,7 @@ Run.exe 0 "MSACCESS.EXE ""{UNCPath\File.mde}"""
 ```
 Of course, this is problematic (at best) and behaves differently if calling the .PS1 as opposed to the .EXE.  It is assumed that you are using the .EXE henceforth...
 
-Another approach when quotes get complicated is to not qualify the parameter names, so the 0 is for the Integer and the rest is passed through.  The script makes use of an overflow parameter and 'tacks these on' the end:
+Another approach when quotes get complicated is to not qualify the parameter names, so the 0 is for the Integer and the rest is passed through.  The script makes use of an arguments parameter and 'tacks these on' the end when they overflow:
 ```
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Complicated\unnecessarily long\path\file name.txt"
 ```
