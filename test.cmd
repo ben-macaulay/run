@@ -1,4 +1,4 @@
-startGOTO TEST
+GOTO TEST
 
 
 
@@ -231,6 +231,44 @@ works:C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F
 TODO - wouild be nice to have -w as optional, so if specified but empty, it defaults to run.exe path (not cmd path).
 Also, trim off the carriage return in the help output of -wkdir - none of the other lines have this!
 
-:TEST
+v3.6 - attempt at inheriting WkDir (fails?)
+Drops args and null wkdir (launches blank mmc): C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 1024 MMC.exe ActiveRoles.msc
+Drops args and null wkdir (launches blank mmc):C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe -i:1024 -c:MMC.exe -a:ActiveRoles.msc
+C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe -i:1024 -c:MMC.exe -a:ActiveRoles.msc -w:C:\tools\temp
+fark it's all broked!  Revert to 3.4
+args working, not wkdir - need to launch via C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 0 MMC.exe C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\ActiveRoles.msc
+roll fwd to 3.6
+C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 0 MMC.exe C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\ActiveRoles.msc
+freaks out over filepath? (and loses args?)
 
-pause
+
+v3.7 - big changes made, mostly inheriting wkdir from process for when it's not specified - means the ctx publishing 'controls' things.  This fixes:
+ARS works: C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 1024 "MMC.exe ActiveRoles.msc"
+Search AD works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Search Active Directory v1.2.1.hta"
+  doesn't work:C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "Search Active Directory v1.2.1.hta"
+  does work:C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 notepad.exe "Search Active Directory v1.2.1.hta"
+    - ergo: not a bug with run.  mshta is being a dick and needs a full path to render the page??...
+  sorta works (mshta loads with the coorect command line but the windows indicates its broken due the spaces!): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "C:\9c57160d-316b-4e13-b354-639ce18e16c6\Search Active Directory v1.2.1.hta"
+  works (mshta needs the quotes!): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe """C:\9c57160d-316b-4e13-b354-639ce18e16c6\Search Active Directory v1.2.1.hta"""
+  doesn't work(mshta.exe really needs the path): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe """Search Active Directory v1.2.1.hta"""
+DBSWin vista scan config works (testing 8.3 conversion and wait for completion): \\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe 1072 D:\AppV\5e3f30b4-a392-4598-a87f-2f286b8e8b3f\77077cdf-0ee4-4838-b25a-833a223306ab\Root\Duerr\VistaScan\VistaScanConfig.exe
+\\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe 16 notepad.exe
+
+
+3.8
+REM why does wait not have an icon workable?  TIMERS, thats why!
+F:\Packages\System\Packaging\RunV3\run\Run.exe 1056 calc.exe
+REM CONFIRMED %TMP% doesn't work if not triggered via a parent cmd.exe process.  Citrix publishing may differ, but start menu Run doesn't work at all!
+Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" %tmp%\ODBCs.Backup.reg /y"
+REM goes through old logic branch
+Run.exe -i:1024 -c:notepad.exe
+REM testing strict max combination!
+Run.exe 1257 notepad.exe
+Just strict - no 'converted to' BS: Run.exe 1152 notepad.exe 
+
+implied messy still works after including strict:
+inferred-strict equivalent 
+Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" C:\!data\ODBCs.Backup.reg /y"
+:TEST
+Run.exe 0 "reg.exe export HKLM\Software\ODBC\ODBC.INI C:\!data\ODBCs.Backup.reg /y"
+@ping 127.0.0.1 -n 3 >nul
