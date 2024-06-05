@@ -16,15 +16,19 @@ The assumption is that the App-V entrypoints are suppressed in the deployment co
 
 **Usage:**
 ```
-    Run.exe [Int] [Command] [Arguments]
-    Run.ps1 -int:[Int] -cmd:[Command] -Args:[Arguments]
-    Run.exe -i:[Int] -c:[Command] -a:[Arguments parameters/files, etc.]
+    Run.exe [Int] [Command] [Argument] [WkDir]
+    Run.ps1 -int:[Int] -cmd:[Command] -arguments:[Arguments] -wkdir:[Path]
+    Run.exe -i:[Int] -c:[Command] -a:["Arguments parameters/files", etc. in a single string] -w:[Working directory]
 ```
-It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Args:|-a:````
+It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Arguments:|-a:````, ````-WkDir:|-w:````
 
 Non-existent .EXE commands will error with a missing file dialog.
 
-Once the command has been started, a system try icon/cog appears which can be used to present the Int and Command interpretations.
+You can either use the full colon, or spaces, such as: ````Run.exe -i 1024 -c notepad.exe````\
+is the same as ````Run.exe -i:1024 -c:notepad.exe````\
+as well as ````Run.exe 1024 notepad.exe````
+
+Once the command has been started, a system try icon/cog appears which can be used to present the Int and Command interpretations - unfortunately this happens after the debug prompt if using int=1024.
 
 # 
 
