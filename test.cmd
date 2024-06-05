@@ -267,8 +267,8 @@ Run.exe 1257 notepad.exe
 Just strict - no 'converted to' BS: Run.exe 1152 notepad.exe 
 
 implied messy still works after including strict:
+Run.exe 0 "reg.exe export HKLM\Software\ODBC\ODBC.INI C:\!data\ODBCs.Backup.reg /y"
 inferred-strict equivalent 
 Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" C:\!data\ODBCs.Backup.reg /y"
 :TEST
-Run.exe 0 "reg.exe export HKLM\Software\ODBC\ODBC.INI C:\!data\ODBCs.Backup.reg /y"
 @ping 127.0.0.1 -n 3 >nul

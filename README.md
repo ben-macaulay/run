@@ -114,7 +114,7 @@ powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Complicated\unne
 ```
 A browser-based example:
 ```
-run.exe 128 http://stupid.intranet.url/legacypath
+run.exe 256 http://stupid.intranet.url/legacypath
 ```
 
 ~~I've extended the parameter handling so that the script passes third and fourth parameters to [Cmd], assuming it's something quirky like a rundll32.exe call or something awful like javaw.exe -jar [file] -Xms1024M -Xmx4096M, etc.~~
@@ -140,7 +140,7 @@ Think about it and test some scenarios.
 * Added optional parameter for working directory
 * Determine the current directory from run.exe location if not supplied
 * Move wow64 support out of legacy branch (where the guessing happens). 
-* Added another int 256 for 'strict' mode (this has bumped the browser up to 256, 128=strict).  largely a moot point with better param handling now but I wanted a way to prevent it from 'guessing' if -Cmd had nested parameters that it needed to convert into -Arguments.  The int value 128 changing from browser to strict is because it's assumed browser is never used with other ints (if at all!), whereas strict may be needed in tandem with a handful of others.
+* Added another int 256 to accommodate 'strict' mode (this has bumped the browser feature up to 256, 128=strict).  largely a moot point with better param handling now but I wanted a way to prevent it from 'guessing' if -Cmd had nested parameters that needed to be converted into -Arguments.  The int value 128 changing from browser to strict is because it's assumed browser is never used with other ints (if at all!), whereas strict may be needed in tandem with a handful of others.
 #
 ## TODO
 I plan to:
