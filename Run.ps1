@@ -31,7 +31,7 @@ A spawned process (ideally)
 Param (
     [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
     [Alias("c")][Parameter (Mandatory=$false)]$Cmd = "cmd.exe",
-    [Alias("a")][Parameter (Mandatory=$false)]$Args,
+    [Alias("a")][Parameter (Mandatory=$false)]$Arguments,
     [Alias("w")][Parameter (Mandatory=$false)][AllowEmptyString()]$WkDir
     )
 
@@ -41,19 +41,21 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $debug = $true
     # 2022-03-08
     $int = 1024
-    $cmd = "mmc.exe"
-    $args = "ActiveRoles.msc"
-    $wkdir = ""
-} elseif (Test-Path variable:\psISE ) {  # testing hacks - ISE:
+    $cmd = "F:\Packages\System\Notepad2-mod\Notepad2.exe"
+    $arguments = "F:\Packages\System\Notepad2-mod\Readme-mod.txt"
+    #$wkdir = "F:\Packages\System\Packaging\PSADT_template"
+} elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
 } else {
     # breaks when compiled: $Current_File = ([io.fileinfo]$MyInvocation.MyCommand.Definition).Name
     # https://stackoverflow.com/questions/53134414/powershell-myinvocation-mycommand-path-returns-null-when-convert-script-in-exe
     if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript") { 
         # $Current_File = ([io.fileinfo]$MyInvocation.MyCommand.Definition).Name 
-        $Current_File = Split-Path -Leaf -Path $MyInvocation.MyCommand.Definition 
+        $Current_File = Split-Path -Leaf -Path $MyInvocation.MyCommand.Definition
     }
-    else { $Current_File = Split-Path -Leaf -Path ([Environment]::GetCommandLineArgs()[0]) }
+    else { 
+        $Current_File = Split-Path -Leaf -Path ([Environment]::GetCommandLineArgs()[0])
+    }
 }
 #endregion
 
@@ -128,6 +130,7 @@ if ($Arguments) {
     }
     $SkipLegacyCode=$true
 }
+
 if ($WkDir) {
     if ( $WkDir.StartsWith('-') ) {
         # Manage if they've used -W or -WkDir by finding the first ':' 
@@ -137,9 +140,9 @@ if ($WkDir) {
     $msg = $msg+"Received Working directory: [$WkDir]`r`n"
     $SkipLegacyCode=$true
 } else {
-    $WkDir = Split-Path $Current_File -Parent
+    #$WkDir = $PWD
+    $WkDir = [System.Environment]::CurrentDirectory
     $msg = $msg+"Inherited Working directory: [$WkDir]`r`n"
-    $SkipLegacyCode=$true
 }
 
 if ( $SkipLegacyCode -ine $true) {
