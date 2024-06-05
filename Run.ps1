@@ -23,13 +23,13 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.7 (don't forget to update compile.cmd!)
+    Version  : 3.8 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
 
 Param (
-    [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
+    [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1257)][int]$Int = 0,
     [Alias("c")][Parameter (Mandatory=$false)]$Cmd = "cmd.exe",
     [Alias("a")][Parameter (Mandatory=$false)]$Arguments,
     [Alias("w")][Parameter (Mandatory=$false)][AllowEmptyString()]$WkDir
@@ -40,9 +40,9 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $debug = $true
     # 2022-03-08
-    $int = 1088
+    $int = 1257
     $cmd = "cmd.exe"
-    $arguments = "/c reg.exe query HKLM\Software\ODBC.INI /s"
+    $arguments = "/k reg.exe query HKLM\Software\ODBC\ODBC.INI /s"
     #$wkdir = "F:\Packages\System\Packaging\PSADT_template"
 } elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
@@ -65,7 +65,8 @@ $cmd = $cmd.ToLower().Replace('-cmd:','')
 $msg = "$Current_File`r`n`r`nReceived integer: [$Int]`r`nReceived command: [$Cmd]`r`n"
 if ( $Int -gt 0 )    { $msg = $msg+"`r`nReceived feature parameters:`r`n"}
 if ( $Int -ge 1024 )  { $debug = $true;    $Int = $Int - 1024;  $msg = $msg+" - 1024: DEBUG on `r`n"}
-if ( $Int -ge 128 )   { $browser = $true;  $Int = $Int - 128;   $msg = $msg+" -  128: Browser on`r`n"}
+if ( $Int -ge 256 )   { $browser = $true;  $Int = $Int - 256;   $msg = $msg+" -  256: Browser on`r`n"}
+if ( $Int -ge 128 )   { $strict = $true;   $Int = $Int - 128;   $msg = $msg+" -  128: Strict on`r`n"}
 if ( $Int -ge 64 )    { $64bit = $true;    $Int = $Int - 64;    $msg = $msg+" -   64: 64-bit on`r`n"}
 if ( $Int -ge 32 )    { $wait = $true;     $Int = $Int - 32;    $msg = $msg+" -   32: Wait on `r`n"}
 if ( $Int -ge 16 )    { $8dot3 = $true;    $Int = $Int - 16;    $msg = $msg+" -   16: 8.3 support on `r`n"}
@@ -95,7 +96,16 @@ if ( $browser ) {  # then $cmd is just a URL?
 
 
 } else {
-    # break down the command supplied -  Find out binary and if any args exist
+    if ($strict){
+        $SkipLegacyCode=$true
+        $exe = $cmd
+    }
+    else {
+        $SkipLegacyCode=$false # this statement forces to use the old crazy branch badly ported from AHK.
+        # ^^ several If statements below undo this, it's merely a compatibility hack ^^
+        # if strict is off, we break down the command supplied -  Find out binary and if any args exist
+    }
+    
 
 
     if ( $cmd.Contains($Current_File) ) {                                       # remove run.exe from the logic so it only deals with the secondary process (I guess this trims the unspecified -int as well, possibly):
@@ -109,9 +119,6 @@ if ( $browser ) {  # then $cmd is just a URL?
         $cmdToWorkWith = $cmd.ToLower()                                         # why can't i just copy the variable $cmdtoWorkWith = $cmd?
     }
 
-
-$SkipLegacyCode=$false # this statement forces to use the old crazy branch badly ported from AHK.
-# ^^ several If statements below undo this, it's merely a compatibility hack ^^
 
     if ($Arguments) {
         if ( $Arguments.StartsWith('-') ) {
@@ -145,7 +152,7 @@ $SkipLegacyCode=$false # this statement forces to use the old crazy branch badly
     } else {
         #$WkDir = $PWD
         $WkDir = [System.Environment]::CurrentDirectory
-        $msg = $msg+"Inherited Working directory: [$WkDir]`r`n"
+        $msg = $msg+"`r`nInherited Working directory: [$WkDir]`r`n"
     }
 
     # this is the catchall for if the cmd *also* includes the args - kinda like RunV2 usage always worked - eww...
