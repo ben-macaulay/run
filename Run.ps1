@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.6 (don't forget to update compile.cmd!)
+    Version  : 3.7 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -40,9 +40,9 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $debug = $true
     # 2022-03-08
-    $int = 1024
-    $cmd = "F:\Packages\System\Notepad2-mod\Notepad2.exe"
-    $arguments = "F:\Packages\System\Notepad2-mod\Readme-mod.txt"
+    $int = 1088
+    $cmd = "cmd.exe"
+    $arguments = "/c reg.exe query HKLM\Software\ODBC.INI /s"
     #$wkdir = "F:\Packages\System\Packaging\PSADT_template"
 } elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
@@ -110,62 +110,73 @@ if ( $browser ) {  # then $cmd is just a URL?
     }
 
 
-$SkipLegacyCode=$false
-if ($Arguments) {
-    if ( $Arguments.StartsWith('-') ) {
-        # Manage if they've used -A or -Arguments by finding the first ':' 
-        # Necessary 'cos when compiled Arguments = '-A:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
-        $Arguments = $Arguments.Substring( $Arguments.IndexOf(':')+1 )
-    }
-    # lets trust them...  They seem like they know what they're doing - and the branch below is such a mess!
-    $exe = $Cmd
-    if ($Arguments){
-        $msg = $msg+"Received Arguments: [$Arguments]`r`n"
-        #check if we need to wrap it in quotes
-        if ( -NOT ($Arguments.StartsWith('"') ) -and $Arguments.Contains(' ') ) {
-            $Arguments = """$Arguments"""
-            $msg = $msg+"...wrapped Arguments in quotes due to spaces. `r`n New arguments:[$Arguments]"
+$SkipLegacyCode=$false # this statement forces to use the old crazy branch badly ported from AHK.
+# ^^ several If statements below undo this, it's merely a compatibility hack ^^
+
+    if ($Arguments) {
+        if ( $Arguments.StartsWith('-') ) {
+            # Manage if they've used -A or -Arguments by finding the first ':' 
+            # Necessary 'cos when compiled Arguments = '-A:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
+            $Arguments = $Arguments.Substring( $Arguments.IndexOf(':')+1 )
         }
-        $exeargs = $Arguments
+        # lets trust them...  They seem like they know what they're doing - and the branch below is such a mess!
+        $exe = $Cmd
+        if ($Arguments){
+            $msg = $msg+"Received Arguments: [$Arguments]`r`n"
+            #check if we need to wrap it in quotes
+            <# v3.6 - decided this is too dangerous, quotes get put in wrong places. Leave it up to the engineer to decide!
+            if ( -NOT ($Arguments.StartsWith('"') ) -and $Arguments.Contains(' ') ) {
+                $Arguments = """$Arguments"""
+                $msg = $msg+"...wrapped Arguments in quotes due to spaces. `r`n New arguments:[$Arguments]`r`n"
+            }#>
+            $exeargs = $Arguments
+        }
+        $SkipLegacyCode=$true
     }
-    $SkipLegacyCode=$true
-}
 
-if ($WkDir) {
-    if ( $WkDir.StartsWith('-') ) {
-        # Manage if they've used -W or -WkDir by finding the first ':' 
-        # Necessary 'cos when compiled WkDir = '-W:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
-        $wkDir = $wkDir.Substring( $WkDir.IndexOf(':')+1 )
-    }
-    $msg = $msg+"Received Working directory: [$WkDir]`r`n"
-    $SkipLegacyCode=$true
-} else {
-    #$WkDir = $PWD
-    $WkDir = [System.Environment]::CurrentDirectory
-    $msg = $msg+"Inherited Working directory: [$WkDir]`r`n"
-}
-
-if ( $SkipLegacyCode -ine $true) {
-    ### Messy shit it's really too hard to hang on to...
-    $exeends = $cmdToWorkWith.ToLower().IndexOf(".exe")+5                # find the end of the first .exe - CASE-INSENSITIVE!
-    if ($cmdToWorkWith.Length -gt $exeends) {
-        $exe = $cmdToWorkWith.Substring(0,$exeends)                      # Grab just the .EXE path
-        $msg = $msg+"`r`n`r`CMD: Found long arguments. Trimming to [$exe]"
-        $exeargs = $cmdToWorkWith.Substring($exeends)                    # everything else goes into the args
-        $exeargs = $exeargs.Trim()                                       # strip spaces
+    if ($WkDir) {
+        if ( $WkDir.StartsWith('-') ) {
+            # Manage if they've used -W or -WkDir by finding the first ':' 
+            # Necessary 'cos when compiled WkDir = '-W:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
+            $wkDir = $wkDir.Substring( $WkDir.IndexOf(':')+1 )
+        }
+        $msg = $msg+"Received Working directory: [$WkDir]`r`n"
+        $SkipLegacyCode=$true
     } else {
-        # $msg = $msg+"`r`n`n`r`Didnt find long arguments. CmdToWorkWith.Length:$($cmdToWorkWith.Length), Exeends:$exeends"   # maybe we're just launching notepad.exe?
-        if ( $Arguments ) { } #$exeargs = $Arguments 
-        else { $exeargs = $false }
-        $exe = $cmdToWorkWith
+        #$WkDir = $PWD
+        $WkDir = [System.Environment]::CurrentDirectory
+        $msg = $msg+"Inherited Working directory: [$WkDir]`r`n"
     }
 
+    # this is the catchall for if the cmd *also* includes the args - kinda like RunV2 usage always worked - eww...
+    if ( $SkipLegacyCode -ine $true) {
+        ### Messy shit it's really too hard to hang on to...
+        $exeends = $cmdToWorkWith.ToLower().IndexOf(".exe")+5                # find the end of the first .exe - CASE-INSENSITIVE!
+        if ($cmdToWorkWith.Length -gt $exeends) {
+            $exe = $cmdToWorkWith.Substring(0,$exeends)                      # Grab just the .EXE path
+            $msg = $msg+"`r`n`r`CMD: Found long arguments. Trimming to [$exe]"
+            $exeargs = $cmdToWorkWith.Substring($exeends)                    # everything else goes into the args
+            $exeargs = $exeargs.Trim()                                       # strip spaces
+        } else {
+            # $msg = $msg+"`r`n`n`r`Didnt find long arguments. CmdToWorkWith.Length:$($cmdToWorkWith.Length), Exeends:$exeends"   # maybe we're just launching notepad.exe?
+            if ( $Arguments ) { } #$exeargs = $Arguments 
+            else { $exeargs = $false }
+            $exe = $cmdToWorkWith
+        }
 
-    if ( $Arguments -and ($exeargs -ne $false) ) { 
-        $msg = $msg+"`r`n`r`OVERFLOW: Concatenating argument [$Arguments] after [$exeargs]"
-        $exeargs = "$exeargs $Arguments"
+
+        if ( $Arguments -and ($exeargs -ne $false) ) { 
+            $msg = $msg+"`r`n`r`OVERFLOW: Concatenating argument [$Arguments] after [$exeargs]"
+            $exeargs = "$exeargs $Arguments"
+        }
+        ### End of messy shit it's really too hard to hang on to...
+
+        $exe = $exe.replace('"','')                                         # strip quotes
+        $exe = $exe.trim()                                                  # blanks
+
+        
+        $msg = $msg+"`r`n`r`nConverted to: [$exe]`r`n`Arguments: [$exeargs]"
     }
-    ### End of messy shit it's really too hard to hang on to...
 
     if ( $64bit ) {
         $msg = $msg+"`r`n`r`nWoW64 support on: "
@@ -191,34 +202,27 @@ if ( $SkipLegacyCode -ine $true) {
             }
         }
     }
-    $exe = $exe.replace('"','')                                         # strip quotes
-    $exe = $exe.trim()                                                  # blanks
 
-    
-    $msg = $msg+"`r`n`r`nConverted to: [$exe]`r`n`Arguments: [$exeargs]"
-}
-}
+    if ( $8dot3 ) {
+        # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-file-paths-to-8-3-part-2
 
+        $regblock = Get-ItemPropertyValue registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem -Name NtfsDisable8dot3NameCreation
+        if ( $regblock -ne 1 ) { # technically, the filesystem *could* still have 8.3 disabled, but at least the OS doesn't disallow it system-wide...
 
-if ( $8dot3 ) {
-    # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-file-paths-to-8-3-part-2
-
-    $regblock = Get-ItemPropertyValue registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem -Name NtfsDisable8dot3NameCreation
-    if ( $regblock -ne 1 ) { # technically, the filesystem *could* still have 8.3 disabled, but at least the OS doesn't disallow it system-wide...
-
-        #signature of internal API call:
-        $signature = '[DllImport("kernel32.dll", SetLastError=true)] public static extern int GetShortPathName(String pathName, StringBuilder shortName, int cbShortName);'
-        # turn signature into .NET type:
-        Add-Type -MemberDefinition $signature -Namespace Tools -Name Path -UsingNamespace System.Text
-        $sb = [System.Text.StringBuilder]::new(300)                      # create empty string builder with 300-character capacity
-        $rv = [Tools.Path]::GetShortPathName($exe, $sb, 300)             # ask Windows to convert long path to short path with a max of 300 characters
-        if ($rv -ne 0){
-            $exe = $sb.ToString()
-            $msg = $msg+"`r`n`r`nFurther converted to 8.3:'$exe`'`r`n`Arguments:'$exeargs`'"
-        } else { throw "Errors converting $cmd to 8.3 - Does the file exist and the filesystem supports 8.3 paths?" }
-        
-    } else { throw "8.3 is disabled by regkey NtfsDisable8dot3NameCreation!" }
-}
+            #signature of internal API call:
+            $signature = '[DllImport("kernel32.dll", SetLastError=true)] public static extern int GetShortPathName(String pathName, StringBuilder shortName, int cbShortName);'
+            # turn signature into .NET type:
+            Add-Type -MemberDefinition $signature -Namespace Tools -Name Path -UsingNamespace System.Text
+            $sb = [System.Text.StringBuilder]::new(300)                      # create empty string builder with 300-character capacity
+            $rv = [Tools.Path]::GetShortPathName($exe, $sb, 300)             # ask Windows to convert long path to short path with a max of 300 characters
+            if ($rv -ne 0){
+                $exe = $sb.ToString()
+                $msg = $msg+"`r`n`r`nFurther converted to 8.3:'$exe`'`r`n`Arguments:'$exeargs`'"
+            } else { throw "Errors converting $cmd to 8.3 - Does the file exist and the filesystem supports 8.3 paths?" }
+            
+        } else { throw "8.3 is disabled by regkey NtfsDisable8dot3NameCreation!" }
+    }
+} #end of if browser
 
 
 if ( $max -and -not($min -or $hide)) {$ws = "Maximized"}
