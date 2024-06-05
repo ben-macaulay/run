@@ -1,4 +1,4 @@
-GOTO TEST
+startGOTO TEST
 
 
 
@@ -197,6 +197,40 @@ F:\Packages\System\Packaging\RunV3\run\run.exe -int:1024 -cmd:"F:\Packages\Syste
     Found not working 'cos of the space in the arguments - do we need to carefully wrap it in quotes or something?
 F:\Packages\System\Packaging\RunV3\run\run.exe -int:1024 -cmd:"F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe" -arguments:"F:\Users\ben\My Documents\AutoHotkey.ahk"
     Works after including the WkDir fix and handling the quotes
-:TEST
 F:\Packages\System\Packaging\RunV3\run\run.exe -int:1024 -cmd:"F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe" -a:"F:\Users\ben\My Documents\AutoHotkey.ahk"
+
+
+2024-06-05 - COVID boredom
+EDIS - S:\Packages\EDIS_8.74_v9 and up\4-AppV\EDIS_8.74_v14
+this works fine (no surprise, really): C:\ProgramData\Microsoft\AppV\Client\Integration\4AA597B5-E1B1-4A57-83F5-643713B1C12A\Root\run.exe 2 "powershell.exe -executionpolicy bypass -nop -f p:\XenApp7CC\RunCtx.ps1 -AppV EDIS_8.74_v14 -Command p:\edis\EdisTrainingXA7.vbs"
+
+RRIS: ae0a5f54-0722-4558-832d-8eac29ab6243
+this works fine (no surprise, really): C:\ProgramData\Microsoft\AppV\Client\Integration\ae0a5f54-0722-4558-832d-8eac29ab6243\Root\run.exe 2 "powershell.exe -executionpolicy bypass -f \\wn0apps\apps\RIS-Launch\LaunchRRis.ps1 -RISEnv DIT1"
+
+Search AD:cf565fbb-3957-4dce-a0d5-22269ace3a70
+doesn't work - doesn't use local dir for file search? C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 0 "MSHTA.exe ""Search Active Directory v1.2.1.hta"""
+works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 0 "MSHTA.exe C:\ProgramData\Microsoft\AppV\Client\Integr~1\cf565f~1\Root\Search~1.hta"
+also works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 0 "MSHTA.exe C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Search~1.hta"
+also works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 0 "MSHTA.exe ""C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Search Active Directory v1.2.1.hta"""
+
+3M Coding Standalone
+doesn't work: C:\ProgramData\Microsoft\AppV\Client\Integration\3A994DB2-D315-481B-8B26-2D1B0684990E\Root\Run.exe 1024 "\\wn0apps\apps\3MCoder\connections\interface\32\weblink.exe URL=http://3mwebprod:8080/launchCRS.html"
+works: C:\ProgramData\Microsoft\AppV\Client\Integration\3A994DB2-D315-481B-8B26-2D1B0684990E\Root\Run.exe 1024 -c:\\wn0apps\apps\3MCoder\connections\interface\32\weblink.exe -arg:URL=http://3mwebprod:8080/launchCRS.html
+doesn't work: C:\ProgramData\Microsoft\AppV\Client\Integration\3A994DB2-D315-481B-8B26-2D1B0684990E\Root\Run.exe 1024 """\\wn0apps\apps\3MCoder\connections\interface\32\weblink.exe"" URL=http://3mwebprod:8080/launchCRS.html"
+doesn't work: C:\ProgramData\Microsoft\AppV\Client\Integration\3A994DB2-D315-481B-8B26-2D1B0684990E\Root\Run.exe 1024 "\\wn0apps\apps\3MCoder\connections\interface\32\weblink.exe ""URL=http://3mwebprod:8080/launchCRS.html"""
+
+ARS
+Doesn't work: C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 1024 "MMC.exe ActiveRoles.msc"
+Can't find the .MSC 'cos wkdir is system32 :(
+Same issue with: C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 1024 -c:MMC.exe -a:ActiveRoles.msc
+-wkdir specified (and if null, being run.exe location rather than .exe location?)
+
+WORks:C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe -i:1024 -c:MMC.exe -a:ActiveRoles.msc -w:C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root
+works:C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 0 MMC.exe ActiveRoles.msc C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root
+
+TODO - wouild be nice to have -w as optional, so if specified but empty, it defaults to run.exe path (not cmd path).
+Also, trim off the carriage return in the help output of -wkdir - none of the other lines have this!
+
+:TEST
+
 pause

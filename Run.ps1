@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.5 (don't forget to update compile.cmd!)
+    Version  : 3.6 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -32,25 +32,18 @@ Param (
     [Alias("i")][Parameter (Mandatory=$false)][ValidateRange(0,1151)][int]$Int = 0,
     [Alias("c")][Parameter (Mandatory=$false)]$Cmd = "cmd.exe",
     [Alias("a")][Parameter (Mandatory=$false)]$Args,
-    [Alias("w")][Parameter (Mandatory=$false)]$WkDir
+    [Alias("w")][Parameter (Mandatory=$false)][AllowEmptyString()]$WkDir
     )
 
 #region Dev/Test setup
 if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
-    $int = 64
-    $cmd = """C:\Program Files (x86)\Internet Explorer\iexplore.exe"" http://google.com"
-    $cmd = "notepad.exe"; if ( test-path Variable:exeargs ) { remove-item Variable:exeargs }
-    $cmd = "notepad.EXE ""F:\Packages\System\Packaging\Interview Questions\Packager Technical questions.docx"""
-    $cmd = "C:\Windows\System32\odbcad32.exe"
-    $cmd = "reg.exe"
     $debug = $true
     # 2022-03-08
     $int = 1024
-    $cmd = "F:\Packages\System\Packaging\RunV3\run\run.exe ""powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.Server.Startup.ps1"""
-    $cmd = "powershell.exe -exec bypass -nop -file F:\Packages\System\Packaging\RunV3\run\run.ps1 ""powershell.exe -exec bypass -nop -f F:\Packages\Games\Minecraft\MC.ServerStartup.ps1"""
-    $Current_File = "Run.exe"
-    $Current_File = "Run.ps1"
+    $cmd = "mmc.exe"
+    $args = "ActiveRoles.msc"
+    $wkdir = ""
 } elseif (Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
 } else {
@@ -143,6 +136,10 @@ if ($WkDir) {
     }
     $msg = $msg+"Received Working directory: [$WkDir]`r`n"
     $SkipLegacyCode=$true
+} else {
+    $WkDir = Split-Path $Current_File -Parent
+    $msg = $msg+"Inherited Working directory: [$WkDir]`r`n"
+
 }
 
 if ( $SkipLegacyCode -ine $true) {
