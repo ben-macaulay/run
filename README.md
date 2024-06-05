@@ -16,15 +16,19 @@ The assumption is that the App-V entrypoints are suppressed in the deployment co
 
 **Usage:**
 ```
-    Run.exe [Int] [Command] [Arguments]
-    Run.ps1 -int:[Int] -cmd:[Command] -Args:[Arguments]
-    Run.exe -i:[Int] -c:[Command] -a:[Arguments parameters/files, etc.]
+    Run.exe [Int] [Command] [Argument] [WkDir]
+    Run.ps1 -int:[Int] -cmd:[Command] -arguments:[Arguments] -wkdir:[Path]
+    Run.exe -i:[Int] -c:[Command] -a:["Arguments parameters/files", etc. (in a single string)] -w:[Working directory]
 ```
-It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Args:|-a:````
+It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Arguments:|-a:````, ````-WkDir:|-w:````
 
-Non-existent .EXE commands will error with a missing file dialog.
+Non-existent .EXE commands will error with an invalid path/file not found.
 
-Once the command has been started, a system try icon/cog appears which can be used to present the Int and Command interpretations.
+You can either use the full colon, or spaces, such as: ````Run.exe -i 1024 -c notepad.exe````\
+is the same as ````Run.exe -i:1024 -c:notepad.exe````\
+as well as ````Run.exe 1024 notepad.exe````
+
+Once the command has been started, a system try icon/cog appears which can be used to present the Int and Command interpretations - unfortunately this happens after the debug prompt if using int=1024.
 
 # 
 
@@ -37,9 +41,9 @@ Possible Int values are various combinations of:
  - **+2**: Run [Command] in a hidden window
  - **+4**: Run [Command] in a minimised window (not everything actually supports/honours this)
  - **+8**: Run [Command] in a maximised window
- - **+16**: Convert [Command] so it uses 8.3 paths - This only applies to the .EXE and won't convert 'argument' paths to 8.3.  Supply the full path: C:\Program Files\Internet Explorer\Iexplore.exe.
+ - **+16**: Convert [Command] so it uses 8.3 paths - This only applies to the .EXE and won't convert 'argument' paths to 8.3.  Supply the full path: C:\Program Files\Internet Explorer\Iexplore.exe.  This relies on the script finding the .EXE in [Command] and asking the OS for it's 8.3-equivalent path!
  - **+32**: Wait for [Command] to complete (otherwise, waits for 5 seconds before exiting).  This disables systray as per +1.
- - **+64**: Semi-experimental 64-bit support (Run.exe is compiled as 32-bit by default). Launch [Command] using $Env:Windir\Sysnative (via WoW64 redirection) - you'll need to pass something like reg.exe for it to 'hit' the x64 binaries.  Only works for System32 paths and won't convert an argument/parameter to an 8.3 path - this relies on the script finding the [Command] and asking the OS for it's 8.3-equivalent path.
+ - **+64**: Semi-experimental 64-bit support (Run.exe is compiled as 32-bit by default). Launch [Command] using $Env:Windir\Sysnative (via WoW64 redirection) - you'll need to pass something like reg.exe for it to 'hit' the x64 binaries.  Only works for System32 paths and WILL NOT convert an argument/parameter to x64 path - It's basically just hijacking C:\Windows\SysNative.
  - **+128**: Run [Command] in a the default browser (supply a URL to the users preferred http handler)
  - **+1024**: Display a debug message prior to launching [Command].  Useful if using #1 or #32 (or don't have a taskbar?)
 
@@ -47,9 +51,21 @@ Possible Int values are various combinations of:
 
 A note about ```[cmd]``` getting complicated:
 
-As of v3.1, use the overflow arguments happily. Additionally, providing the Int parameter means the script can focus on the real work (and it's often shorter than dabbling with -c: and -o:).
+As of v3.4+, use the shortened arguments happily - it's far more reliable. At least, provide the ````-c:"{blah}"```` parameter means the script can focus on the real work.  For example, clearly delineate the command and arguments in separate parameters (and the arguments are a single string):
+````
+Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" %tmp%ODBCs.Backup.reg /y"
 
-Still not perfect and you may need to remember quotes around your URL / Path. If your path has spaces, you may need to duplicate your quotes, E.g:
+Run.exe -i 0 -c reg.exe -a "export ""HKLM\Software\ODBC\ODBC.INI"" %tmp%ODBCs.Backup.reg /y"
+````
+
+Alternatively, this will work terribly:
+
+````Run.exe 0 reg.exe export "HKLM\Software\ODBC\ODBC.INI" %tmp%ODBCs.Backup.reg /y````
+
+- It'll interpret it as the -Arguments being ````export````, the -WkDir as ````%tmp%ODBCs.Backup.reg```` and haveno idea what to do with ````/y````
+
+
+Another example - Still not perfect and you may need to remember quotes around your URL / Path. If your path has spaces, you may need to duplicate your quotes, E.g:
 ```
 Run.exe 0 MSACCESS.EXE "{UNCPath\File.mde}"
 
@@ -57,11 +73,11 @@ Run.exe 0 "MSACCESS.EXE ""{UNCPath\File.mde}"""
 ```
 Of course, this is problematic (at best) and behaves differently if calling the .PS1 as opposed to the .EXE.  It is assumed that you are using the .EXE henceforth...
 
-Another approach when quotes get complicated is to not qualify the parameter names, so the 0 is for the Integer and the rest is passed through.  The script makes use of an arguments parameter and 'tacks these on' the end when they overflow:
+Another approach when quotes get complicated is to not qualify the parameter names, so the 0 is for the Integer and the rest is passed throug as one big mess.  The script uses the arguments parameter and 'tacks these on' the end BUT this is only done when the parameters are not explicitly supplied (it uses some old code from runv2 which tries to figure out 'what to do', on the parameter order - this is most likely broken by supplying either the Working directory parameter or Arguments):
 ```
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Complicated\unnecessarily long\path\file name.txt"
 ```
-This is usually successful, but I would'nt be surprised if an unintended limitation exists, somewhere...  It really only works for the third parameter.
+This is occasionally successful, but I would'nt be surprised if an unintended limitation exists, somewhere...  It really only works for the third parameter.
 
 #
 
