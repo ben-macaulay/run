@@ -139,7 +139,7 @@ if ($WkDir) {
 } else {
     $WkDir = Split-Path $Current_File -Parent
     $msg = $msg+"Inherited Working directory: [$WkDir]`r`n"
-
+    $SkipLegacyCode=$true
 }
 
 if ( $SkipLegacyCode -ine $true) {
