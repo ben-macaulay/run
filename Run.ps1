@@ -39,11 +39,14 @@ Param (
 if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $debug = $true
-    # 2022-03-08
     $int = 1257
     $cmd = "cmd.exe"
     $arguments = "/k reg.exe query HKLM\Software\ODBC\ODBC.INI /s"
-    #$wkdir = "F:\Packages\System\Packaging\PSADT_template"
+    $arguments = "-a --new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b"
+
+    "-a --new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b" -replace [regex]'^-[aA](:|\s)'
+    "-a --new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b" -replace [regex]'^-[aA](rguments)*?(:|\s)'
+    "-arguMENts:--new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b" -replace [regex]::new("^-a(rguments)*?(:|\s)",[System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 } elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
 } else {
@@ -123,8 +126,11 @@ if ( $browser ) {  # then $cmd is just a URL?
     if ($Arguments) {
         if ( $Arguments.StartsWith('-') ) {
             # Manage if they've used -A or -Arguments by finding the first ':' 
-            # Necessary 'cos when compiled Arguments = '-A:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
-            $Arguments = $Arguments.Substring( $Arguments.IndexOf(':')+1 )
+            # Necessary 'cos when compiled $Arguments = '-A:"blah" or -A "blah"'.  In Posh it's just '"blah"'...  #killmenow...
+            # Further complicated by cases where using a colon differently, such as -a "http://blah"
+            #$Arguments = $Arguments.Substring( $Arguments.IndexOf(':')+1 )
+            $Arguments = $Arguments -replace [regex]::new("^-a(rguments)*?(:|\s)",[System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            # the regex above catches the start of a string, -a and has optional 'rguments' catching as well, with either a : or space and is case-insensitive
         }
         # lets trust them...  They seem like they know what they're doing - and the branch below is such a mess!
         $exe = $Cmd
@@ -145,7 +151,8 @@ if ( $browser ) {  # then $cmd is just a URL?
         if ( $WkDir.StartsWith('-') ) {
             # Manage if they've used -W or -WkDir by finding the first ':' 
             # Necessary 'cos when compiled WkDir = '-W:"blah"'.  In Posh it's just '"blah"'...  #killmenow...
-            $wkDir = $wkDir.Substring( $WkDir.IndexOf(':')+1 )
+            #$wkDir = $wkDir.Substring( $WkDir.IndexOf(':')+1 )
+            $wkDir = $wkDir -replace [regex]::new("^-w(kdir)*?(:|\s)",[System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
         }
         $msg = $msg+"Received Working directory: [$WkDir]`r`n"
         $SkipLegacyCode=$true

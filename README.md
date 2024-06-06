@@ -48,12 +48,12 @@ Possible Int values are various combinations of:
  - **+256**: Run [Command] in a the default browser (supplies a URL to the users preferred http handler).
  - **+1024**: Display a debug message prior to launching [Command].  Useful if using #1 or #32 (or don't have a taskbar?)
 
-It's assumed the greatest Int you could want is 1257: Debug + Strict + 64-bit + Wait + Maximised + No tray icon
+As of 3.8, it's assumed the greatest Int you could want is 1257: Debug + Strict + 64-bit + Wait + Maximised + No tray icon.  There are lots of incompatible options, so be wise - also don't assume your child process is going to accommodate all of these!
 #
 
 A note about ```[cmd]``` getting complicated:
 
-As of v3.4+, use the shortened parameters , -c & -a happily (or add +128/strict) - it's far more reliable! At least provide the ````-c:"{blah}"```` parameter means the script can focus on the real work.  For example, clearly delineate the command and arguments in separate parameters (and the arguments are a SINGLE string):
+As of v3.4+, use the shortened parameters , -c & -a happily (or add +128/strict) as it's far more reliable! At least provide the ````-c:{blah} -a:{blah}```` parameters which means the script can focus on the real work.  For example, clearly delineate the command and arguments in separate parameters (and remember the arguments are a SINGLE string):
 ````
 Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" C:\!data\ODBCs.Backup.reg /y"
 
@@ -64,22 +64,20 @@ Alternatively, this will work terribly:
 
 ````Run.exe 0 reg.exe export "HKLM\Software\ODBC\ODBC.INI" C:\!data\ODBCs.Backup.reg /y````
 
-- It'll interpret it as the -Arguments being ````export````, the -WkDir as ````C:\!data\ODBCs.Backup.reg```` and have no idea what to do with ````/y````
+- It'll interpret it as -Int=````0````, -Cmd=````reg.exe````, -Arguments=````export````, -WkDir=````"HKLM\Software\ODBC\ODBC.INI"```` and have no idea what to do with the '````C:\!data\ODBCs.Backup.reg /y````' on the end.
 
 
 Another example - Still not perfect and you may need to remember quotes around your URL / Path. If your path has spaces, you may need to duplicate your quotes, E.g:
 ```
-Run.exe 0 MSACCESS.EXE "{UNCPath\File.mde}"
+Run.exe 0 MSACCESS.EXE "{UNC Path\File.mde}"
+
+Run.exe 0 MSACCESS.EXE File.mde "{UNC Path}"
+
+Run.exe 0 MSACCESS.EXE -w:"{UNC Path}" -a:File.mde
 
 Run.exe 0 "MSACCESS.EXE ""{UNCPath\File.mde}"""
 ```
 Of course, this is problematic (at best) and behaves differently if calling the .PS1 as opposed to the .EXE.  It is assumed that you are using the .EXE henceforth...
-
-Another approach when quotes get complicated is to not qualify the parameter names, so the 0 is for the Integer and the rest is passed throug as one big mess.  The script uses the arguments parameter and 'tacks these on' the end BUT this is only done when the parameters are not explicitly supplied (it uses some old code from runv2 which tries to figure out 'what to do', on the parameter order - this is most likely broken by supplying either the Working directory parameter or Arguments):
-```
-powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Complicated\unnecessarily long\path\file name.txt"
-```
-This is occasionally successful, but I would'nt be surprised if an unintended limitation exists, somewhere...  It really only works for the third parameter.
 
 #
 

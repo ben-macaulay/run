@@ -244,11 +244,11 @@ freaks out over filepath? (and loses args?)
 
 v3.7 - big changes made, mostly inheriting wkdir from process for when it's not specified - means the ctx publishing 'controls' things.  This fixes:
 ARS works: C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 1024 "MMC.exe ActiveRoles.msc"
-Search AD works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Search Active Directory v1.2.1.hta"
+Search AD works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe """C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Search Active Directory v1.2.1.hta"""
   doesn't work:C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "Search Active Directory v1.2.1.hta"
-  does work:C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 notepad.exe "Search Active Directory v1.2.1.hta"
+  does work (cos it's notepad!): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 notepad.exe "Search Active Directory v1.2.1.hta"
     - ergo: not a bug with run.  mshta is being a dick and needs a full path to render the page??...
-  sorta works (mshta loads with the coorect command line but the windows indicates its broken due the spaces!): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "C:\9c57160d-316b-4e13-b354-639ce18e16c6\Search Active Directory v1.2.1.hta"
+  sorta works (mshta loads with the correct command line but the windows indicates its broken due the spaces!): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe "C:\9c57160d-316b-4e13-b354-639ce18e16c6\Search Active Directory v1.2.1.hta"
   works (mshta needs the quotes!): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe """C:\9c57160d-316b-4e13-b354-639ce18e16c6\Search Active Directory v1.2.1.hta"""
   doesn't work(mshta.exe really needs the path): C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe """Search Active Directory v1.2.1.hta"""
 DBSWin vista scan config works (testing 8.3 conversion and wait for completion): \\wn0packages\Packages\_EUC\SourceControl\RunV3\run\run.exe 1072 D:\AppV\5e3f30b4-a392-4598-a87f-2f286b8e8b3f\77077cdf-0ee4-4838-b25a-833a223306ab\Root\Duerr\VistaScan\VistaScanConfig.exe
@@ -270,5 +270,11 @@ implied messy still works after including strict:
 Run.exe 0 "reg.exe export HKLM\Software\ODBC\ODBC.INI C:\!data\ODBCs.Backup.reg /y"
 inferred-strict equivalent 
 Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" C:\!data\ODBCs.Backup.reg /y"
+Run.exe 1024 MSACCESS.EXE -w:"UNC Path" -a:File.mde
+
+ARS works: C:\ProgramData\Microsoft\AppV\Client\Integration\49BB5D9E-487D-4188-A543-F93AD47BE877\Root\Run.exe 1024 "MMC.exe ActiveRoles.msc"
+Search AD works: C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Run.exe 1024 MSHTA.exe """C:\ProgramData\Microsoft\AppV\Client\Integration\cf565fbb-3957-4dce-a0d5-22269ace3a70\Root\Search Active Directory v1.2.1.hta"""
+3M Coding Standalone works: C:\ProgramData\Microsoft\AppV\Client\Integration\3A994DB2-D315-481B-8B26-2D1B0684990E\Root\Run.exe 1024 -c:\\wn0apps\apps\3MCoder\connections\interface\32\weblink.exe -arg:URL=http://3mwebprod:8080/launchCRS.html
+also works: C:\ProgramData\Microsoft\AppV\Client\Integration\3A994DB2-D315-481B-8B26-2D1B0684990E\Root\Run.exe 1024 \\wn0apps\apps\3MCoder\connections\interface\32\weblink.exe URL=http://3mwebprod:8080/launchCRS.html
 :TEST
 @ping 127.0.0.1 -n 3 >nul
