@@ -40,13 +40,10 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $debug = $true
     $int = 1257
-    $cmd = "cmd.exe"
+    $cmd = "F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe"
     $arguments = "/k reg.exe query HKLM\Software\ODBC\ODBC.INI /s"
-    $arguments = "-a --new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b"
+    $arguments = "F:\Users\ben\My Documents\AutoHotkey.ahk"
 
-    "-a --new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b" -replace [regex]'^-[aA](:|\s)'
-    "-a --new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b" -replace [regex]'^-[aA](rguments)*?(:|\s)'
-    "-arguMENts:--new-window http://concerto.hvh.co.nz/concerto --user-data-dir=%LOCALAPPDATA%\SCP -a -b" -replace [regex]::new("^-a(rguments)*?(:|\s)",[System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 } elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
 } else {
