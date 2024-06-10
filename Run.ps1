@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.8 (don't forget to update compile.cmd!)
+    Version  : 3.9 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -40,9 +40,9 @@ if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $debug = $true
     $int = 1257
-    $cmd = "F:\Packages\System\Autohotkey\AutoHotkey\AutoHotkeyU32.exe"
-    $arguments = "/k reg.exe query HKLM\Software\ODBC\ODBC.INI /s"
-    $arguments = "F:\Users\ben\My Documents\AutoHotkey.ahk"
+    $cmd = "firefox.exe"
+    $arguments = "https://spam.com"
+    $WkDir = "F:\Users\ben\My Documents"
 
 } elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
@@ -116,7 +116,7 @@ if ( $browser ) {  # then $cmd is just a URL?
         $cmdToWorkWith = $cmd.Substring($StripSelfPosition)                     # So this is the meat of what we're actually wanting launched
         $msg = $msg+"`r`n`r`CmdToWorkWith: [$cmdToWorkWith]"
     } else { 
-        $cmdToWorkWith = $cmd.ToLower()                                         # why can't i just copy the variable $cmdtoWorkWith = $cmd?
+        $cmdToWorkWith = $cmd.ToLower()
     }
 
 
@@ -162,6 +162,7 @@ if ( $browser ) {  # then $cmd is just a URL?
     # this is the catchall for if the cmd *also* includes the args - kinda like RunV2 usage always worked - eww...
     if ( $SkipLegacyCode -ine $true) {
         ### Messy shit it's really too hard to hang on to...
+        $msg = $msg+"Using Legacy code branch from AHK days`r`n"
         $exeends = $cmdToWorkWith.ToLower().IndexOf(".exe")+5                # find the end of the first .exe - CASE-INSENSITIVE!
         if ($cmdToWorkWith.Length -gt $exeends) {
             $exe = $cmdToWorkWith.Substring(0,$exeends)                      # Grab just the .EXE path
@@ -187,6 +188,22 @@ if ( $browser ) {  # then $cmd is just a URL?
 
         
         $msg = $msg+"`r`n`r`nConverted to: [$exe]`r`n`Arguments: [$exeargs]"
+    }
+
+    # 3.9 - lookup apppaths so we can call chrome.exe / msedge.exe in the same fashion as iexplore.exe (or whatever else is registered!)
+    if ( ($cmd.Substring(0,2) -eq '\\' -or $cmd.Substring(1,2) -eq ':\') -and $strict -eq $false) { 
+            # It's a UNC path or local drives, so we do nothing.
+            #Also, if strict is set don't do this (just in case)
+    } else{
+        $msg = $msg + "$cmd appears to be unqualified. "
+        if ( test-path "$WkDir\$cmd" ) {
+            $exe = "$WkDir\$cmd"
+            $msg = $msg + "Found $cmd in $WkDir, resolving location: `r`n[$exe]"
+        } elseif (test-path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$cmd") {
+            # look up the App Paths for $cmd
+            $exe = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$cmd").'(default)'
+            $msg = $msg + "Found $cmd in App Paths, resolving location: `r`n[$exe]"
+        }
     }
 
     if ( $64bit ) {
