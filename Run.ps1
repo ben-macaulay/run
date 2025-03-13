@@ -403,4 +403,5 @@ $iconbase64 = 'AAABAAYAAAAAAAEAIAAcYwAAZgAAAICAAAABACAAKAgBAIJjAABAQAAAAQAgAChCA
     $appContext = New-Object System.Windows.Forms.ApplicationContext
     [void][System.Windows.Forms.Application]::Run($appContext)
 
+    exit $returncode # how did I miss this?
 }
