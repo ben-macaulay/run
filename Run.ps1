@@ -23,7 +23,7 @@ A spawned process (ideally)
 .NOTES
 
     Author   : Ben Macaulay
-    Version  : 3.9 (don't forget to update compile.cmd!)
+    Version  : 3.10 (don't forget to update compile.cmd!)
     Purpose  : Ad-hoc launcher to spawn processes in virtual environments
 
 #>
@@ -39,11 +39,11 @@ Param (
 if ( Test-Path variable:\psEditor ) {  # testing hacks - VSCode:
     $Current_File = $psEditor.GetEditorContext().CurrentFile.Path
     $debug = $true
-    $int = 1257
-    $cmd = "firefox.exe"
-    $arguments = "https://spam.com"
+    $64bit = $false
+    $int = 32
+    $cmd = "C:\WINDOWS\system32\WindowsPowerShell\v1.0\PowerShell.exe"
+    $arguments = "-nop -command exit 1099"
     $WkDir = "F:\Users\ben\My Documents"
-
 } elseif ( Test-Path variable:\psISE ) {  # testing hacks - ISE:
     $Current_File = Split-Path $psise.CurrentFile.FullPath
 } else {
@@ -266,7 +266,8 @@ if ($debug) {write-host $msg}
 # Great advice from Ryan Bolger at https://serverfault.com/questions/1069894/how-do-i-optionally-specify-parameters-in-powershell/1069912#1069912
 $startParams = @{ FilePath = $exe }
 if ($ws) { $startParams.WindowStyle = $ws }                #  conditionally add WindowStyle
-if ($wait) { $startParams.wait = $true }                   # conditionally add Wait
+if ($wait) { $startParams.wait = $true                     # conditionally add Wait
+             $startParams.PassThru = $true}                # needed for proper returncode passing
 if ($exeargs) { $startParams.ArgumentList = $exeargs }     # conditionally add arguments
 if ($wkdir) { $startParams.WorkingDirectory = $WkDir }     # conditionally add working direcotry
 #endregion Splatting for Start-Process
@@ -275,7 +276,9 @@ if ($wkdir) { $startParams.WorkingDirectory = $WkDir }     # conditionally add w
 
 #The systray icon and wait can't really co-exist, so:
 if ($iconoff -or $wait) {                                    # No systray icon, just launch it!
-    Start-Process @startParams                               # spawn process...  Fsckin finally!
+    $returncode = Start-Process @startParams                 # spawn process...  Fsckin finally!
+    exit $returncode.ExitCode                                # how did I miss this?
+
 } else {                                                     # make a fancy systray icon...  Big tedious mess of GUI crap:
 #region  Fugly, tedious, GUI crap
     <# 
@@ -395,7 +398,7 @@ $iconbase64 = 'AAABAAYAAAAAAAEAIAAcYwAAZgAAAICAAAABACAAKAgBAIJjAABAQAAAAQAgAChCA
 
 
     # spawn process...  Fsckin finally!
-    $returncode = Start-Process @startParams                                  # run the function with the splatted hashtable.  Replaces:
+    Start-Process @startParams                                 # run the function with the splatted hashtable.  Replaces:
 
 
     # Create an application context for it to all run within - Thanks Chrissy
@@ -403,5 +406,4 @@ $iconbase64 = 'AAABAAYAAAAAAAEAIAAcYwAAZgAAAICAAAABACAAKAgBAIJjAABAQAAAAQAgAChCA
     $appContext = New-Object System.Windows.Forms.ApplicationContext
     [void][System.Windows.Forms.Application]::Run($appContext)
 
-    exit $returncode # how did I miss this?
 }
