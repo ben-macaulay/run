@@ -17,15 +17,15 @@ The assumption is that the App-V entrypoints are suppressed in the deployment co
 **Usage:**
 ```
     Run.exe [Int] [Command] [Argument] [WkDir]
-    Run.ps1 -int:[Int] -cmd:[Command] -arguments:[Arguments] -wkdir:[Path]
-    Run.exe -i:[Int] -c:[Command] -a:["Arguments parameters/files", etc. (in a single string)] -w:[Working directory]
+    Run.ps1 -int [Int] -cmd [Command] -arguments [Arguments] -wkdir [Path]
+    Run.exe -i [Int] -c [Command] -a ["Arguments parameters/files", etc. (in a single string)] -w [Working directory]
 ```
-It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int:|-i:``` and ````-Cmd:|-c:```` and optionally ````-Arguments:|-a:````, ````-WkDir:|-w:````
+It is assumed that Int is the first argument and needs to be a number.  If in doubt, use ```Run.exe 0 "{Command}"``` or qualify them with ```-Int|-i``` and ````-Cmd|-c```` and optionally ````-Arguments|-a````, ````-WkDir|-w````
 
 Non-existent .EXE commands will error with an invalid path/file not found.
 
 You can either use the full colon, or spaces, such as: ````Run.exe -i 1024 -c notepad.exe````\
-is the same as ````Run.exe -i:1024 -c:notepad.exe````\
+is the same as ````Run.exe -i 1024 -c notepad.exe````\
 as well as ````Run.exe 1024 notepad.exe````
 
 Once the command has been started, a system try icon/cog appears which can be used to present the Int and Command interpretations - unfortunately this happens after the debug prompt if using int=1024.
@@ -53,7 +53,7 @@ As of 3.8, it's assumed the greatest Int you could want is 1257: Debug + Strict 
 
 A note about ```[cmd]``` getting complicated:
 
-As of v3.4+, use the shortened parameters , -c & -a happily (or add +128/strict) as it's far more reliable! At least provide the ````-c:{blah} -a:{blah}```` parameters which means the script can focus on the real work.  For example, clearly delineate the command and arguments in separate parameters (and remember the arguments are a SINGLE string):
+As of v3.4+, use the shortened parameters , -c & -a happily (or add +128/strict) as it's far more reliable! At least provide the ````-c {blah} -a {blah}```` parameters which means the script can focus on the real work.  For example, clearly delineate the command and arguments in separate parameters (and remember the arguments are a SINGLE string):
 ````
 Run.exe 0 reg.exe "export ""HKLM\Software\ODBC\ODBC.INI"" C:\!data\ODBCs.Backup.reg /y"
 
@@ -73,7 +73,7 @@ Run.exe 0 MSACCESS.EXE "{UNC Path\File.mde}"
 
 Run.exe 0 MSACCESS.EXE File.mde "{UNC Path}"
 
-Run.exe 0 MSACCESS.EXE -w:"{UNC Path}" -a:File.mde
+Run.exe 0 MSACCESS.EXE -w "{UNC Path}" -a File.mde
 
 Run.exe 0 "MSACCESS.EXE ""{UNCPath\File.mde}"""
 ```
@@ -89,26 +89,26 @@ Wade through testing.cmd for a more exhaustive list.
 ```
 run.exe 0 "notepad.exe ""F:\Complicated\unnecessarily long\path\file name.txt"""
 
-powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE F:\Complicated\unnecessarily long\path\file name.txt"
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int 0 -cmd "notepad.EXE F:\Complicated\unnecessarily long\path\file name.txt"
 
 run.exe 32 "Control.exe mmsys.cpl"
 
 run.exe 1072 """C:\Program Files\Internet Explorer\iexplore.exe"" about:blank"
 
-run.exe "notepad2.exe ""%~dp0readme.md""" -int:0
+run.exe "notepad2.exe ""%~dp0readme.md""" -int 0
 
-run.exe notepad2.exe "%~dp0readme.md" -int:0
+run.exe notepad2.exe "%~dp0readme.md" -int 0
 
-powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:"notepad.EXE ""F:\Complicated\unnecessarily long\path\file name.txt"""
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int 0 -cmd "notepad.EXE ""F:\Complicated\unnecessarily long\path\file name.txt"""
 ```
 **or** some equivalent variants:
 ```
-powershell.exe -exec bypass -f "%~dp0run.ps1" -int:0 -cmd:notepad.EXE -arguments:"F:\Complicated\unnecessarily long\path\file name.txt"
+powershell.exe -exec bypass -f "%~dp0run.ps1" -int 0 -cmd notepad.EXE -arguments "F:\Complicated\unnecessarily long\path\file name.txt"
 
 powershell.exe -exec bypass -f "%~dp0run.ps1" 0 notepad.exe "F:\Complicated\unnecessarily long\path\file name.txt"
 "%~dp0run.exe" 0 "notepad.EXE ""F:\Complicated\unnecessarily long\path\file name.txt"""
 
-"%~dp0run.exe" -int:0 -cmd:"notepad.EXE ""F:\Complicated\unnecessarily long\path\file name.txt"""
+"%~dp0run.exe" -int 0 -cmd "notepad.EXE ""F:\Complicated\unnecessarily long\path\file name.txt"""
 ```
 A browser-based example:
 ```
